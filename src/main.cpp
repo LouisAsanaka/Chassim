@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
 #include <iostream>
+#include <vector>
 #include "constants.hpp"
 #include "pathgen.hpp"
 #include "environment.hpp"
@@ -33,24 +34,26 @@ int main() {
     b2Body* robotBody{robot.getBody()};
 
     PathGenerator pathGen{ROBOT_PHYSICAL_SIZE, 3.0, 4.0, 20.0};
-    // +x forward, +y left
-    TrajectoryPair* traj = pathGen.generatePath({
+
+    std::vector<Point> waypoints = {
         Point{0, 0, 0},
         Point{1, 1, b2_pi / 2},
         Point{2, 2, 0},
         Point{9, 2, 0},
         Point{10, 1, b2_pi / 2},
-        Point{11, 0, 0},
-        });
+        Point{11, 0, 0}
+    };
+    
+    // +x forward, +y left
+    TrajectoryPair* traj = pathGen.generatePath(waypoints);
     int length = traj->length;
     bool isRunning = false;
-
     int i = 0;
+
     while (window.isOpen()) {
         // Process events
         sf::Event event;
         while (window.pollEvent(event)) {
-            // Close window: exit
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
@@ -85,15 +88,6 @@ int main() {
             right = -2.0f;
         }
         robot.setWheelSpeeds(left, right);
-
-        /*auto mousePos = sf::Mouse::getPosition(window);
-        b2Vec2 vec = b2Vec2{P2M((float) mousePos.x), P2M((float) mousePos.y)} -
-            robotBody->GetPosition();
-        vec.Normalize();
-        vec *= MAX_SPEED;
-        robotBody->ApplyForceToCenter(vec, true);*/
-
-        //std::cout << mousePos.x << ", " << mousePos.y << std::endl;
 
         env.update();
         robot.update();

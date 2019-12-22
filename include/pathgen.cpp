@@ -11,7 +11,7 @@ PathGenerator::PathGenerator(float trackwidth, double maxVel, double maxAccel, d
 
 }
 
-TrajectoryPair* PathGenerator::generatePath(std::initializer_list<Point> waypoints) {
+TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints) {
     if (waypoints.size() == 0) {
         // No point in generating a path
         std::cout <<

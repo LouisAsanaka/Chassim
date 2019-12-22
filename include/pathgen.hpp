@@ -1,5 +1,5 @@
 #pragma once
-#include <initializer_list>
+#include <vector>
 #include <string>
 #include "pathfinder/pathfinder.h"
 
@@ -19,7 +19,7 @@ class PathGenerator {
 public:
     PathGenerator(float trackwidth, double maxVel, double maxAccel, double maxJerk);
 
-    TrajectoryPair* generatePath(std::initializer_list<Point> waypoints);
+    TrajectoryPair* generatePath(std::vector<Point> waypoints);
 private:
     float trackwidth;
     double maxVel;
