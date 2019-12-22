@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\environment.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\pathfinder\error.c" />
+    <ClCompile Include="src\pathfinder\fit\hermite.c" />
+    <ClCompile Include="src\pathfinder\followers\distance.c" />
+    <ClCompile Include="src\pathfinder\followers\encoder.c" />
+    <ClCompile Include="src\pathfinder\generator.c" />
+    <ClCompile Include="src\pathfinder\io.c" />
+    <ClCompile Include="src\pathfinder\mathutil.c" />
+    <ClCompile Include="src\pathfinder\modifiers\swerve.c" />
+    <ClCompile Include="src\pathfinder\modifiers\tank.c" />
+    <ClCompile Include="src\pathfinder\spline.c" />
+    <ClCompile Include="src\pathfinder\trajectory.c" />
+    <ClCompile Include="src\robot.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\constants.hpp" />
+    <ClInclude Include="include\environment.hpp" />
+    <ClCompile Include="include\pathgen.cpp" />
+    <ClInclude Include="include\pathfinder\error.h" />
+    <ClInclude Include="include\pathfinder\fit.h" />
+    <ClInclude Include="include\pathfinder\followers\distance.h" />
+    <ClInclude Include="include\pathfinder\followers\encoder.h" />
+    <ClInclude Include="include\pathfinder\io.h" />
+    <ClInclude Include="include\pathfinder\lib.h" />
+    <ClInclude Include="include\pathfinder\mathutil.h" />
+    <ClInclude Include="include\pathfinder\modifiers\swerve.h" />
+    <ClInclude Include="include\pathfinder\modifiers\tank.h" />
+    <ClInclude Include="include\pathfinder\pathfinder.h" />
+    <ClInclude Include="include\pathfinder\spline.h" />
+    <ClInclude Include="include\pathfinder\structs.h" />
+    <ClInclude Include="include\pathfinder\trajectory.h" />
+    <ClInclude Include="include\pathgen.hpp" />
+    <ClInclude Include="include\robot.hpp" />
+    <ClInclude Include="include\utils.hpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{C5CDC89E-9BAF-4F4E-992C-FA0702FBA5AC}</ProjectGuid>
+    <RootNamespace>Chassim</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)\bin\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Link>
+      <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-system.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\libraries\Box2D\lib;D:\libraries\SFML-2.5.1\lib</AdditionalLibraryDirectories>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;D:\libraries\Box2D\include;D:\libraries\SFML-2.5.1\include</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Link>
+      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\libraries\Box2D\lib;D:\libraries\SFML-2.5.1\lib</AdditionalLibraryDirectories>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;D:\libraries\Box2D\include;D:\libraries\SFML-2.5.1\include</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
