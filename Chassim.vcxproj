@@ -24,12 +24,15 @@
     <ClCompile Include="src\pathfinder\modifiers\tank.c" />
     <ClCompile Include="src\pathfinder\spline.c" />
     <ClCompile Include="src\pathfinder\trajectory.c" />
+    <ClCompile Include="src\pathgen.cpp" />
+    <ClCompile Include="src\pointsList.cpp" />
     <ClCompile Include="src\robot.cpp" />
+    <ClCompile Include="src\uiController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\constants.hpp" />
     <ClInclude Include="include\environment.hpp" />
-    <ClCompile Include="include\pathgen.cpp" />
+    <ClInclude Include="include\main.hpp" />
     <ClInclude Include="include\pathfinder\error.h" />
     <ClInclude Include="include\pathfinder\fit.h" />
     <ClInclude Include="include\pathfinder\followers\distance.h" />
@@ -44,7 +47,10 @@
     <ClInclude Include="include\pathfinder\structs.h" />
     <ClInclude Include="include\pathfinder\trajectory.h" />
     <ClInclude Include="include\pathgen.hpp" />
+    <ClInclude Include="include\pointsList.hpp" />
     <ClInclude Include="include\robot.hpp" />
+    <ClInclude Include="include\structs.hpp" />
+    <ClInclude Include="include\uiController.hpp" />
     <ClInclude Include="include\utils.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -81,20 +87,20 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-system.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\libraries\Box2D\lib;D:\libraries\SFML-2.5.1\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-system.lib;tgui.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\libraries\Box2D\lib;D:\libraries\SFML-2.5.1\lib;D:\libraries\TGUI-0.8\lib</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;D:\libraries\Box2D\include;D:\libraries\SFML-2.5.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;D:\libraries\Box2D\include;D:\libraries\SFML-2.5.1\include;D:\libraries\TGUI-0.8\include</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
-      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\libraries\Box2D\lib;D:\libraries\SFML-2.5.1\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;tgui-d.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\libraries\Box2D\lib;D:\libraries\SFML-2.5.1\lib;D:\libraries\TGUI-0.8\lib</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;D:\libraries\Box2D\include;D:\libraries\SFML-2.5.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;D:\libraries\Box2D\include;D:\libraries\SFML-2.5.1\include;D:\libraries\TGUI-0.8\include</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

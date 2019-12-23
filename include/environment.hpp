@@ -4,7 +4,7 @@
 
 class Environment {
 public:
-    Environment();
+    Environment(const sf::Texture& texture);
 
     b2World& getWorld();
     void update();

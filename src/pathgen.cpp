@@ -15,7 +15,7 @@ TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints) {
     if (waypoints.size() == 0) {
         // No point in generating a path
         std::cout <<
-            "AsyncMotionProfileController: Not generating a path because no waypoints were given." << std::endl;
+            "PathGenerator: Not generating a path because no waypoints were given." << std::endl;
         return nullptr;
     }
 
@@ -27,7 +27,7 @@ TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints) {
     }
 
     TrajectoryCandidate candidate;
-    std::cout << "AsyncMotionProfileController: Preparing trajectory" << std::endl;
+    std::cout << "PathGenerator: Preparing trajectory" << std::endl;
     pathfinder_prepare(points.data(),
         static_cast<int>(points.size()),
         FIT_HERMITE_CUBIC,
@@ -47,7 +47,7 @@ TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints) {
         };
 
         std::string message =
-            "AsyncMotionProfileController: Path is impossible with waypoints: " +
+            "PathGenerator: Path is impossible with waypoints: " +
             std::accumulate(std::next(points.begin()),
                 points.end(),
                 pointToString(points.at(0)),
@@ -69,7 +69,7 @@ TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints) {
     auto* trajectory = static_cast<Segment*>(malloc(length * sizeof(Segment)));
 
     if (trajectory == nullptr) {
-        std::string message = "AsyncMotionProfileController: Could not allocate trajectory. The path "
+        std::string message = "PathGenerator: Could not allocate trajectory. The path "
             "is probably impossible.";
         std::cout << message << std::endl;
 
@@ -84,14 +84,14 @@ TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints) {
         throw std::runtime_error(message);
     }
 
-    std::cout << "AsyncMotionProfileController: Generating path" << std::endl;
+    std::cout << "PathGenerator: Generating path" << std::endl;
     pathfinder_generate(&candidate, trajectory);
 
     auto* leftTrajectory = (Segment*)malloc(sizeof(Segment) * length);
     auto* rightTrajectory = (Segment*)malloc(sizeof(Segment) * length);
 
     if (leftTrajectory == nullptr || rightTrajectory == nullptr) {
-        std::string message = "AsyncMotionProfileController: Could not allocate left and/or right "
+        std::string message = "PathGenerator: Could not allocate left and/or right "
             "trajectories. The path is probably impossible.";
         std::cout << message << std::endl;
 
@@ -110,14 +110,14 @@ TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints) {
         throw std::runtime_error(message);
     }
 
-    std::cout << "AsyncMotionProfileController: Modifying for tank drive" << std::endl;
+    std::cout << "PathGenerator: Modifying for tank drive" << std::endl;
     pathfinder_modify_tank(
         trajectory, length, leftTrajectory, rightTrajectory, trackwidth);
 
     free(trajectory);
 
-    std::cout << "AsyncMotionProfileController: Completely done generating path" << std::endl;
-    std::cout << "AsyncMotionProfileController: " + std::to_string(length) << std::endl;
+    std::cout << "PathGenerator: Completely done generating path" << std::endl;
+    std::cout << "PathGenerator: " + std::to_string(length) << std::endl;
 
     return new TrajectoryPair{leftTrajectory, rightTrajectory, length};
 }

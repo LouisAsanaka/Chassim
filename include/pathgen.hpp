@@ -1,13 +1,8 @@
 #pragma once
 #include <vector>
 #include <string>
+#include "structs.hpp"
 #include "pathfinder/pathfinder.h"
-
-struct Point {
-    float x;
-    float y;
-    float theta;
-};
 
 struct TrajectoryPair {
     Segment* left;

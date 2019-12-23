@@ -1,4 +1,5 @@
-#include <SFML/Graphics.hpp>
+#include "main.hpp"
+#include <TGUI/TGUI.hpp>
 #include <Box2D/Box2D.h>
 #include <iostream>
 #include <vector>
@@ -7,30 +8,37 @@
 #include "environment.hpp"
 #include "robot.hpp"
 #include "utils.hpp"
+#include "uiController.hpp"
 
-static const float MAX_SPEED = 1.6f; // in m/s
+sf::Texture field;
+
+void initTextures() {
+    field.loadFromFile("asset/field.png");
+}
 
 int main() {
-    // Prepare the window
-    const int WIDTH = 1800;
-    const int HEIGHT = 730;
-    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT, 32), "Chassim", sf::Style::Titlebar | sf::Style::Close);
+    initTextures();
+
+    // Initialize the window
+    sf::Vector2u windowSize{field.getSize()};
+    windowSize += sf::Vector2u{POINTS_LIST_WIDTH, MENU_BAR_HEIGHT};
+
+    sf::RenderWindow window{
+        sf::VideoMode(windowSize.x, windowSize.y, 32),
+        "Chassim", sf::Style::Titlebar | sf::Style::Close
+    };
     window.setFramerateLimit(60);
 
-    sf::View view;
-    view.setCenter(sf::Vector2f{WIDTH / 2, HEIGHT / 2});
-    view.setSize(sf::Vector2f{WIDTH, HEIGHT});
-    window.setView(view);
-
-    const int CENTER_X = sf::VideoMode::getDesktopMode().width / 2 - WIDTH / 2;
-    const int CENTER_Y = sf::VideoMode::getDesktopMode().height / 2 - HEIGHT / 2;
+    const int CENTER_X = sf::VideoMode::getDesktopMode().width / 2 - windowSize.x / 2;
+    const int CENTER_Y = sf::VideoMode::getDesktopMode().height / 2 - windowSize.y / 2;
     window.setPosition(sf::Vector2i(CENTER_X, CENTER_Y));
 
-    // Create components
-    Environment env;
-    //Robot robot{env, 306, 550};
-    Robot robot{env, 386, 364};
-    //Robot robot{env, 1420, 364};
+    // Create the GUI
+    UIController ui{window};
+
+    // Create simulator components
+    Environment env{field};
+    Robot robot{env, 196, 364};
     b2Body* robotBody{robot.getBody()};
 
     PathGenerator pathGen{ROBOT_PHYSICAL_SIZE, 3.0, 4.0, 20.0};
@@ -57,14 +65,14 @@ int main() {
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
+            ui.handleEvent(event);
         }
 
-
-        /*if (!isRunning && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+        if (!isRunning && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             isRunning = true;
             i = 0;
-            robot.setPosition(386, 364);
-        }*/
+            robot.setPosition(196, 364);
+        }
 
         if (isRunning) {
             if (i < length) {
@@ -75,7 +83,7 @@ int main() {
             }
         }
 
-        float left = 0.0f;
+        /*float left = 0.0f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
             left = 2.0f;
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
@@ -87,16 +95,19 @@ int main() {
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
             right = -2.0f;
         }
-        robot.setWheelSpeeds(left, right);
+        robot.setWheelSpeeds(left, right);*/
 
+        // Do physics updates
         env.update();
         robot.update();
 
+        // Render the sprites
         window.clear(sf::Color::White);
 
         env.render(window);
         robot.render(window);
 
+        ui.draw();
         window.display();
     }
 

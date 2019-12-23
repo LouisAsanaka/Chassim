@@ -2,63 +2,62 @@
 #include "utils.hpp"
 #include <numeric>
 
-Environment::Environment() :
+Environment::Environment(const sf::Texture& texture) :
     world{b2Vec2{0.0f, 0.0f}},
-    texture{},
+    texture{texture},
     sprite{} {
 
-    texture.loadFromFile("asset/field.png");
     sprite.setTexture(texture);
-    sprite.setPosition(0.0f, 0.0f);
+    sprite.setPosition(0.0f, MENU_BAR_HEIGHT);
 
-    createBoundary(242, 32, 1557, 39);  // Top wall
-    createBoundary(1557, 40, 1564, 691); // Right wall
-    createBoundary(242, 692, 1558, 699);  // Bottom wall
-    createBoundary(234, 39, 241, 690);   // Left wall
-    createBoundary(686, 307, 1113, 421);   // Cargo ship
+    createBoundary(52, 32, 1367, 39);  // Top wall
+    createBoundary(1367, 40, 1374, 691); // Right wall
+    createBoundary(52, 692, 1368, 699);  // Bottom wall
+    createBoundary(44, 39, 51, 690);   // Left wall
+    createBoundary(496, 307, 923, 421);   // Cargo ship
 
     b2Vec2 topLeft[] = {
-        b2Vec2{665, 39},
-        b2Vec2{665, 57},
-        b2Vec2{686, 95},
-        b2Vec2{724, 95},
-        b2Vec2{745, 57},
-        b2Vec2{745, 39}
+        b2Vec2{475, 39},
+        b2Vec2{475, 57},
+        b2Vec2{496, 95},
+        b2Vec2{534, 95},
+        b2Vec2{555, 57},
+        b2Vec2{555, 39}
     };
-    P2M_VEC(topLeft);
+    P2M_VECS(topLeft);
     createRocket(topLeft, 6);
 
     b2Vec2 topRight[] = {
-        b2Vec2{1054, 39},
-        b2Vec2{1054, 57},
-        b2Vec2{1075, 95},
-        b2Vec2{1113, 95},
-        b2Vec2{1135, 57},
-        b2Vec2{1135, 39}
+        b2Vec2{864, 39},
+        b2Vec2{864, 57},
+        b2Vec2{885, 95},
+        b2Vec2{923, 95},
+        b2Vec2{945, 57},
+        b2Vec2{945, 39}
     };
-    P2M_VEC(topRight);
+    P2M_VECS(topRight);
     createRocket(topRight, 6);
 
     b2Vec2 bottomLeft[] = {
-        b2Vec2{665, 691},
-        b2Vec2{665, 672},
-        b2Vec2{686, 635},
-        b2Vec2{724, 635},
-        b2Vec2{745, 672},
-        b2Vec2{745, 691}
+        b2Vec2{475, 691},
+        b2Vec2{475, 672},
+        b2Vec2{496, 635},
+        b2Vec2{534, 635},
+        b2Vec2{555, 672},
+        b2Vec2{555, 691}
     };
-    P2M_VEC(bottomLeft);
+    P2M_VECS(bottomLeft);
     createRocket(bottomLeft, 6);
 
     b2Vec2 bottomRight[] = {
-        b2Vec2{1054, 691},
-        b2Vec2{1054, 672},
-        b2Vec2{1075, 635},
-        b2Vec2{1113, 635},
-        b2Vec2{1135, 672},
-        b2Vec2{1135, 691}
+        b2Vec2{864, 691},
+        b2Vec2{864, 672},
+        b2Vec2{885, 635},
+        b2Vec2{923, 635},
+        b2Vec2{945, 672},
+        b2Vec2{945, 691}
     };
-    P2M_VEC(bottomRight);
+    P2M_VECS(bottomRight);
     createRocket(bottomRight, 6);
 }
 

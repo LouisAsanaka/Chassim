@@ -80,7 +80,13 @@
     <ClCompile Include="src\pathfinder\fit\hermite.c">
       <Filter>src\Source Files\pathfinder\fit</Filter>
     </ClCompile>
-    <ClCompile Include="include\pathgen.cpp">
+    <ClCompile Include="src\pathgen.cpp">
+      <Filter>src\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pointsList.cpp">
+      <Filter>src\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\uiController.cpp">
       <Filter>src\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -137,6 +143,18 @@
       <Filter>include\Header Files\pathfinder\modifiers</Filter>
     </ClInclude>
     <ClInclude Include="include\pathgen.hpp">
+      <Filter>include\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\main.hpp">
+      <Filter>include\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\structs.hpp">
+      <Filter>include\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pointsList.hpp">
+      <Filter>include\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\uiController.hpp">
       <Filter>include\Header Files</Filter>
     </ClInclude>
   </ItemGroup>

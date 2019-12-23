@@ -60,7 +60,7 @@ void Robot::update() {
 }
 
 void Robot::render(sf::RenderWindow& window) {
-    sprite.setPosition(M2P(body->GetPosition().x), M2P(body->GetPosition().y));
+    sprite.setPosition(M2P(body->GetPosition().x), M2P(body->GetPosition().y) + MENU_BAR_HEIGHT);
     sprite.setRotation(body->GetAngle() * 180 / b2_pi);
     window.draw(sprite);
 }
