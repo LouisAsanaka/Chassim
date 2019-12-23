@@ -26,7 +26,10 @@ SimController::SimController(sf::RenderWindow& window) :
 }
 
 void SimController::handleEvent(sf::Event event) {
-    // TODO: Remove this hack
+    if (isPathing) {
+        gui.handleEvent(event);
+        return;
+    }
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
     int index = pointsList->getSelectedItemIndex();
     switch (event.type) {
@@ -167,6 +170,10 @@ void SimController::itemSelected(int index) {
 }
 
 void SimController::editRow(int index) {
+    if (isPathing) {
+        return;
+    }
+
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
 
     tgui::EditBox::Ptr editBox = tgui::EditBox::create();
