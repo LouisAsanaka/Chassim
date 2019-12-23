@@ -27,8 +27,7 @@ int main() {
     const int CENTER_Y = sf::VideoMode::getDesktopMode().height / 2 - windowSize.y / 2;
     window.setPosition(sf::Vector2i(CENTER_X, CENTER_Y));
 
-    // Create the GUI
-    SimController ui{window};
+    SimController controller{window};
 
     while (window.isOpen()) {
         // Process events
@@ -37,25 +36,11 @@ int main() {
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
-            ui.handleEvent(event);
+            controller.handleEvent(event);
         }
 
-        /*float left = 0.0f;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
-            left = 2.0f;
-        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            left = -2.0f;
-        }
-        float right = 0.0f;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            right = 2.0f;
-        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            right = -2.0f;
-        }
-        robot.setWheelSpeeds(left, right);*/
-
-        ui.update();
-        ui.draw();
+        controller.update();
+        controller.draw();
         window.display();
     }
 }

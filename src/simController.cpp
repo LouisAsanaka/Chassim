@@ -114,6 +114,21 @@ void SimController::update() {
         } else {
             isPathing = false;
         }
+    } else {
+        // Manual control
+        float left = 0.0f;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
+            left = 2.0f;
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+            left = -2.0f;
+        }
+        float right = 0.0f;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+            right = 2.0f;
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+            right = -2.0f;
+        }
+        robot.setWheelSpeeds(left, right);
     }
     robot.update();
 }
@@ -202,7 +217,7 @@ void SimController::resetRobot() {
 
     auto& origin = pointSprites.at(0).getPosition();
     robot.setPosition(
-        origin.x, origin.y - MENU_BAR_HEIGHT
+        origin.x, origin.y - MENU_BAR_HEIGHT, -points.getPoint(0).theta * PI / 180
     );
     robot.stop();
 }
@@ -224,6 +239,7 @@ void SimController::generateProfile() {
     if (splinePoints != nullptr) {
         delete[] splinePoints;
     }
+    // TODO: Generate the modified tank trajectory only when executing the profile
     traj = pathGen.generatePath(waypoints);
 
     splinePoints = new sf::Vertex[traj->length];
@@ -244,6 +260,7 @@ void SimController::executeProfile() {
         robot.setPosition(
             origin.x, origin.y - MENU_BAR_HEIGHT, -points.getPoint(0).theta * PI / 180
         );
+        robot.stop();
     }
 }
 
