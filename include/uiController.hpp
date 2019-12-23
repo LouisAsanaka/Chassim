@@ -4,8 +4,9 @@
 #include <vector>
 #include <string>
 #include "pointsList.hpp"
-
-#define NO_DRAGGING_INDEX -2
+#include "environment.hpp"
+#include "pathgen.hpp"
+#include "robot.hpp"
 
 extern sf::Cursor defaultCursor;
 extern sf::Cursor grabCursor;
@@ -15,6 +16,7 @@ public:
     UIController(sf::RenderWindow& window);
 
     void handleEvent(sf::Event event);
+    void update();
     void draw();
 
     void itemSelected(int index);
@@ -22,10 +24,16 @@ public:
     void commitChange(const sf::String& str);
     void unfocused();
 
+    void clearPoints();
+    void resetRobot();
+    void generateProfile();
+    void executeProfile();
+
     void addPoint(float meterX, float meterY, int pixelX, int pixelY);
     void addPoint(float meterX, float meterY);
     void setPoint(int index, int pixelX, int pixelY, bool draw = false);
     void setPoint(int index, const sf::String& str);
+    void swapPoints(int index1, int index2);
     void removePoint(int index);
     sf::Vector2f pixelsRelativeToOrigin(float meterX, float meterY);
     sf::Vector2f metersRelativeToOrigin(int pixelX, int pixelY);
@@ -36,12 +44,19 @@ private:
     sf::RenderWindow& window;
     tgui::Gui gui;
 
+    Environment env;
+    Robot robot;
+
+    PathGenerator pathGen;
+    TrajectoryPair* traj = nullptr;
+    int trajIndex = 0;
+    bool isPathing = false;
+
     PointsList points;
     std::vector<sf::CircleShape> pointSprites;
 
-    int rowDraggingIndex;
-    bool isDraggingRow;
+    int prevSelectedIndex = -1;
 
-    int pointDraggingIndex;
-    bool isDraggingPoint;
+    int pointDraggingIndex = -1;
+    bool isDraggingPoint = false;
 };

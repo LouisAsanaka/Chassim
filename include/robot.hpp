@@ -21,7 +21,7 @@ public:
     ChassisSpeeds getChassisSpeeds();
     WheelSpeeds getWheelSpeeds();
 
-    void setPosition(int x, int y);
+    void setPosition(int x, int y, float theta = 0.0f);
 
     void update();
     void render(sf::RenderWindow& window);
@@ -33,6 +33,6 @@ private:
     b2Body* body;
     Environment& env;
 
-    float linearSpeed;
-    float angularSpeed;
+    float linearSpeed = 0.0f;
+    float angularSpeed = 0.0f;
 };

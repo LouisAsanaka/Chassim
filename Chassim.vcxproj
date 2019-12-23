@@ -32,6 +32,7 @@
   <ItemGroup>
     <ClInclude Include="include\constants.hpp" />
     <ClInclude Include="include\environment.hpp" />
+    <ClInclude Include="include\globals.hpp" />
     <ClInclude Include="include\main.hpp" />
     <ClInclude Include="include\pathfinder\error.h" />
     <ClInclude Include="include\pathfinder\fit.h" />

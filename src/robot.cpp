@@ -36,8 +36,8 @@ WheelSpeeds Robot::getWheelSpeeds() {
         linearSpeed + HALF_TRACKWIDTH * angularSpeed);
 }
 
-void Robot::setPosition(int x, int y) {
-    body->SetTransform(b2Vec2{P2M(x), P2M(y)}, 0.0f);
+void Robot::setPosition(int x, int y, float theta) {
+    body->SetTransform(b2Vec2{P2M(x), P2M(y)}, theta);
 }
 
 void Robot::update() {

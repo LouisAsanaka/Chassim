@@ -157,5 +157,8 @@
     <ClInclude Include="include\uiController.hpp">
       <Filter>include\Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\globals.hpp">
+      <Filter>include\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

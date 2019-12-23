@@ -36,28 +36,6 @@ int main() {
     // Create the GUI
     UIController ui{window};
 
-    // Create simulator components
-    Environment env{field};
-    Robot robot{env, 196, 364};
-    b2Body* robotBody{robot.getBody()};
-
-    PathGenerator pathGen{ROBOT_PHYSICAL_SIZE, 3.0, 4.0, 20.0};
-
-    std::vector<Point> waypoints = {
-        Point{0, 0, 0},
-        Point{1, 1, b2_pi / 2},
-        Point{2, 2, 0},
-        Point{9, 2, 0},
-        Point{10, 1, b2_pi / 2},
-        Point{11, 0, 0}
-    };
-    
-    // +x forward, +y left
-    TrajectoryPair* traj = pathGen.generatePath(waypoints);
-    int length = traj->length;
-    bool isRunning = false;
-    int i = 0;
-
     while (window.isOpen()) {
         // Process events
         sf::Event event;
@@ -68,22 +46,7 @@ int main() {
             ui.handleEvent(event);
         }
 
-        /*if (!isRunning && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            isRunning = true;
-            i = 0;
-            robot.setPosition(196, 364);
-        }*/
-
-        if (isRunning) {
-            if (i < length) {
-                robot.setWheelSpeeds(traj->left[i].velocity, traj->right[i].velocity);
-                ++i;
-            } else {
-                isRunning = false;
-            }
-        }
-
-        float left = 0.0f;
+        /*float left = 0.0f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
             left = 2.0f;
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
@@ -95,25 +58,12 @@ int main() {
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
             right = -2.0f;
         }
-        robot.setWheelSpeeds(left, right);
+        robot.setWheelSpeeds(left, right);*/
 
-        // Do physics updates
-        env.update();
-        robot.update();
-
-        // Render the sprites
-        window.clear(sf::Color::White);
-
-        env.render(window);
-        robot.render(window);
-
+        ui.update();
         ui.draw();
         window.display();
     }
-
-    delete traj->left;
-    delete traj->right;
-    delete traj;
 
     return 0;
 }

@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <cmath>
 #include "constants.hpp"
+#include "pathgen.hpp"
 #include "utils.hpp"
+#include "globals.hpp"
 
 sf::Cursor defaultCursor;
 sf::Cursor grabCursor;
@@ -12,50 +14,52 @@ sf::Cursor grabCursor;
 UIController::UIController(sf::RenderWindow& window) :
     window{window},
     gui{window},
-    rowDraggingIndex{NO_DRAGGING_INDEX},
-    isDraggingRow{false},
-    pointDraggingIndex{-1},
-    isDraggingPoint{false} {
+    env{field},
+    robot{env, 196, 364},
+    pathGen{ROBOT_PHYSICAL_SIZE, 3.0, 4.0, 20.0} {
     defaultCursor.loadFromSystem(sf::Cursor::Type::Arrow);
     grabCursor.loadFromSystem(sf::Cursor::Type::Hand);
 
     createComponents();
 
     addPoint(0, 0, 196, 364 + MENU_BAR_HEIGHT);
-    addPoint(1, 1);
-    addPoint(2, 2);
-    addPoint(9, 2);
-    addPoint(10, 1);
-    addPoint(11, 0);
 }
 
 void UIController::handleEvent(sf::Event event) {
     // TODO: Remove this hack
-    if (event.type == sf::Event::EventType::MouseButtonReleased) {
-        if (isDraggingRow) {
-            tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
-            pointsList->deselectItem();
+    tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
+    int index = pointsList->getSelectedItemIndex();
+    switch (event.type) {
+    case sf::Event::EventType::KeyReleased:
+        switch (event.key.code) {
+        case sf::Keyboard::Delete:
+            if (index != -1 && index != 0) {
+                removePoint(index);
+            }
+            break;
+        case sf::Keyboard::Up:
+            if (index > 1) {
+                swapPoints(index, index - 1);
+                pointsList->setSelectedItem(index - 1);
+            }
+            break;
+        case sf::Keyboard::Down:
+            if (index > 0 && index < pointsList->getItemCount() - 1) {
+                swapPoints(index, index + 1);
+                pointsList->setSelectedItem(index + 1);
+            }
+            break;
         }
-        rowDraggingIndex = NO_DRAGGING_INDEX;
-        isDraggingRow = false;
-    } else if (event.type == sf::Event::EventType::KeyReleased && 
-        !isDraggingRow &&
-        event.key.code == sf::Keyboard::Delete
-    ) {
-        tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
-        int index = pointsList->getSelectedItemIndex();
-        if (index != -1 && index != 0) {
-            removePoint(index);
-        }
+        break;
     }
 
     if (!gui.handleEvent(event)) {
         // Event was not intercepted, which means the field was the target
-        if (event.type == sf::Event::MouseButtonPressed) {
-            int pixelX = event.mouseButton.x;
-            int pixelY = event.mouseButton.y;
+        switch (event.type) {
+        case sf::Event::MouseButtonPressed:
             for (int i = 0; i < pointSprites.size(); ++i) {
-                if (pointSprites[i].getGlobalBounds().contains(pixelX, pixelY)) {
+                if (pointSprites[i].getGlobalBounds().contains(
+                        event.mouseButton.x, event.mouseButton.y)) {
                     isDraggingPoint = true;
                     pointDraggingIndex = i;
 
@@ -63,7 +67,8 @@ void UIController::handleEvent(sf::Event event) {
                     break;
                 }
             }
-        } else if (event.type == sf::Event::MouseButtonReleased) {
+            break;
+        case sf::Event::MouseButtonReleased:
             if (isDraggingPoint) {
                 isDraggingPoint = false;
                 pointDraggingIndex = -1;
@@ -72,24 +77,48 @@ void UIController::handleEvent(sf::Event event) {
             } else {
                 int pixelX = event.mouseButton.x;
                 int pixelY = event.mouseButton.y;
-
-                auto meters = metersRelativeToOrigin(pixelX, pixelY);
-                addPoint(meters.x, meters.y, pixelX, pixelY);
+                
+                if (window.getViewport(window.getDefaultView()).contains(pixelX, pixelY)) {
+                    auto meters = metersRelativeToOrigin(pixelX, pixelY);
+                    addPoint(meters.x, meters.y, pixelX, pixelY);
+                }
             }
-        } else if (event.type == sf::Event::MouseMoved && isDraggingPoint) {
-            setPoint(pointDraggingIndex, event.mouseMove.x, event.mouseMove.y, true);
-            if (pointDraggingIndex == 0) {
-                for (int i = 1; i < points.size(); ++i) {
-                    auto& spritePos = pointSprites.at(i).getPosition();
-                    setPoint(i, spritePos.x,
-                        spritePos.y, false);
+        case sf::Event::MouseMoved:
+            if (isDraggingPoint) {
+                setPoint(pointDraggingIndex, event.mouseMove.x, event.mouseMove.y, true);
+                if (pointDraggingIndex == 0) {
+                    for (int i = 1; i < points.size(); ++i) {
+                        auto& spritePos = pointSprites.at(i).getPosition();
+                        setPoint(i, spritePos.x,
+                            spritePos.y, false);
+                    }
                 }
             }
         }
     }
 }
 
+void UIController::update() {
+    env.update();
+
+    if (isPathing) {
+        if (trajIndex < traj->length) {
+            robot.setWheelSpeeds(traj->left[trajIndex].velocity, traj->right[trajIndex].velocity);
+            ++trajIndex;
+        } else {
+            isPathing = false;
+        }
+    }
+    robot.update();
+}
+
 void UIController::draw() {
+    // Render the sprites
+    window.clear(sf::Color::White);
+
+    env.render(window);
+    robot.render(window);
+
     for (auto& pointSprite: pointSprites) {
         window.draw(pointSprite);
     }
@@ -97,34 +126,21 @@ void UIController::draw() {
 }
 
 void UIController::itemSelected(int index) {
-    if (index == -1 || index == 0) {
+    if (index == -1) {
         return;
     }
-    if (rowDraggingIndex != NO_DRAGGING_INDEX && 
-        rowDraggingIndex != index) {
-        isDraggingRow = true;
-
-        points.swap(rowDraggingIndex, index);
-
-        tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
-        auto& temp = pointsList->getItemRow(rowDraggingIndex);
-        pointsList->changeItem(rowDraggingIndex, pointsList->getItemRow(index));
-        pointsList->changeItem(index, temp);
-
-        std::iter_swap(pointSprites.begin() + rowDraggingIndex, pointSprites.begin() + index);
+    if (prevSelectedIndex != -1 && prevSelectedIndex < pointSprites.size()) {
+        auto& prevSprite = pointSprites.at(prevSelectedIndex);
+        prevSprite.setOutlineThickness(0);
     }
-    rowDraggingIndex = index;
+
+    auto& sprite = pointSprites.at(index);
+    sprite.setOutlineThickness(4);
+
+    prevSelectedIndex = index;
 }
 
 void UIController::editRow(int index) {
-    // Can't drag while editing!
-    isDraggingRow = false;
-    rowDraggingIndex = NO_DRAGGING_INDEX;
-
-    if (index == 0) {
-        return;
-    }
-
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
 
     tgui::EditBox::Ptr editBox = tgui::EditBox::create();
@@ -134,7 +150,6 @@ void UIController::editRow(int index) {
         MENU_BAR_HEIGHT + index * pointsList->getItemHeight() + 
             pointsList->getHeaderHeight() + pointsList->getHeaderSeparatorHeight() * 2});
     editBox->setTextSize(24);
-    editBox->limitTextWidth();
     editBox->setText(
         pointsList->getItemCell(index, 0) + ", " +
         pointsList->getItemCell(index, 1) + ", " +
@@ -159,11 +174,48 @@ void UIController::commitChange(const sf::String& str) {
 }
 
 void UIController::unfocused() {
-    isDraggingRow = false;
-    rowDraggingIndex = NO_DRAGGING_INDEX;
-
     tgui::EditBox::Ptr editBox = gui.get<tgui::EditBox>("rowEditBox");
     gui.remove(editBox);
+}
+
+void UIController::clearPoints() {
+    for (int i = points.size() - 1; i > 0; --i) {
+        removePoint(i);
+    }
+}
+
+void UIController::resetRobot() {
+    isPathing = false;
+
+    auto& origin = pointSprites.at(0).getPosition();
+    robot.setPosition(
+        origin.x, origin.y - MENU_BAR_HEIGHT
+    );
+}
+
+void UIController::generateProfile() {
+    std::vector<Point> waypoints = points.getPoints();
+    for (auto& point : waypoints) {
+        point.theta = point.theta * PI / 180;
+    }
+    if (traj != nullptr) {
+        delete traj->left;
+        delete traj->right;
+        delete traj;
+    }
+    traj = pathGen.generatePath(waypoints);
+}
+
+void UIController::executeProfile() {
+    if (!isPathing && traj != nullptr) {
+        isPathing = true;
+        trajIndex = 0;
+
+        const auto& origin = pointSprites.at(0).getPosition();
+        robot.setPosition(
+            origin.x, origin.y - MENU_BAR_HEIGHT, -points.getPoint(0).theta * PI / 180
+        );
+    }
 }
 
 void UIController::addPoint(float meterX, float meterY, int pixelX, int pixelY) {
@@ -182,6 +234,7 @@ void UIController::addPoint(float meterX, float meterY, int pixelX, int pixelY) 
     shape.setRadius(POINT_CIRCLE_RADIUS);
     shape.setPointCount(60);
     shape.setPosition(pixelX, pixelY);
+    shape.setOutlineColor(sf::Color::Red);
 }
 
 void UIController::addPoint(float meterX, float meterY) {
@@ -220,6 +273,17 @@ void UIController::setPoint(int index, const sf::String& str) {
     }
 }
 
+void UIController::swapPoints(int index1, int index2) {
+    points.swap(index1, index2);
+
+    tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
+    auto& temp = pointsList->getItemRow(index1);
+    pointsList->changeItem(index1, pointsList->getItemRow(index2));
+    pointsList->changeItem(index2, temp);
+
+    std::iter_swap(pointSprites.begin() + index1, pointSprites.begin() + index2);
+}
+
 void UIController::removePoint(int index) {
     points.removePoint(index);
 
@@ -232,8 +296,6 @@ void UIController::removePoint(int index) {
 sf::Vector2f UIController::pixelsRelativeToOrigin(float meterX, float meterY) {
     auto& origin = pointSprites.at(0);
     sf::Vector2f pos{M2P(meterX), -M2P(meterY)};
-    std::cout << pos.x << std::endl;
-    std::cout << pos.y << std::endl;
     pos += origin.getPosition();
     return pos;
 }
@@ -252,8 +314,16 @@ void UIController::createComponents() {
     tgui::MenuBar::Ptr menuBar = tgui::MenuBar::create();
     menuBar->setTextSize(16);
     menuBar->setSize({"parent.width", MENU_BAR_HEIGHT});
-    menuBar->addMenu("File");
-    menuBar->addMenuItem("File", "Save As");
+    menuBar->addMenu("Edit");
+    menuBar->addMenuItem("Clear Points");
+    menuBar->connectMenuItem("Edit", "Clear Points", &UIController::clearPoints, this);
+    menuBar->addMenuItem("Reset Robot");
+    menuBar->connectMenuItem("Edit", "Reset Robot", &UIController::resetRobot, this);
+    menuBar->addMenu("Pathing");
+    menuBar->addMenuItem("Generate Profile");
+    menuBar->connectMenuItem("Pathing", "Generate Profile", &UIController::generateProfile, this);
+    menuBar->addMenuItem("Execute Profile");
+    menuBar->connectMenuItem("Pathing", "Execute Profile", &UIController::executeProfile, this);
     gui.add(menuBar, "menuBar");
 
     // Make the table of points
