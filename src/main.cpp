@@ -68,11 +68,11 @@ int main() {
             ui.handleEvent(event);
         }
 
-        if (!isRunning && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+        /*if (!isRunning && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             isRunning = true;
             i = 0;
             robot.setPosition(196, 364);
-        }
+        }*/
 
         if (isRunning) {
             if (i < length) {
@@ -83,7 +83,7 @@ int main() {
             }
         }
 
-        /*float left = 0.0f;
+        float left = 0.0f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
             left = 2.0f;
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
@@ -95,7 +95,7 @@ int main() {
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
             right = -2.0f;
         }
-        robot.setWheelSpeeds(left, right);*/
+        robot.setWheelSpeeds(left, right);
 
         // Do physics updates
         env.update();

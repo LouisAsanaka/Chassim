@@ -7,6 +7,9 @@
 
 #define NO_DRAGGING_INDEX -2
 
+extern sf::Cursor defaultCursor;
+extern sf::Cursor grabCursor;
+
 class UIController {
 public:
     UIController(sf::RenderWindow& window);
@@ -21,6 +24,7 @@ public:
 
     void addPoint(float meterX, float meterY, int pixelX, int pixelY);
     void addPoint(float meterX, float meterY);
+    void setPoint(int index, int pixelX, int pixelY, bool draw = false);
     void setPoint(int index, const sf::String& str);
     void removePoint(int index);
     sf::Vector2f pixelsRelativeToOrigin(float meterX, float meterY);
@@ -35,6 +39,9 @@ private:
     PointsList points;
     std::vector<sf::CircleShape> pointSprites;
 
-    int draggingIndex;
-    bool isDragging;
+    int rowDraggingIndex;
+    bool isDraggingRow;
+
+    int pointDraggingIndex;
+    bool isDraggingPoint;
 };

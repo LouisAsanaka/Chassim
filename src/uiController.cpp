@@ -6,11 +6,19 @@
 #include "constants.hpp"
 #include "utils.hpp"
 
+sf::Cursor defaultCursor;
+sf::Cursor grabCursor;
+
 UIController::UIController(sf::RenderWindow& window) :
     window{window},
     gui{window},
-    draggingIndex{NO_DRAGGING_INDEX},
-    isDragging{false} {
+    rowDraggingIndex{NO_DRAGGING_INDEX},
+    isDraggingRow{false},
+    pointDraggingIndex{-1},
+    isDraggingPoint{false} {
+    defaultCursor.loadFromSystem(sf::Cursor::Type::Arrow);
+    grabCursor.loadFromSystem(sf::Cursor::Type::Hand);
+
     createComponents();
 
     addPoint(0, 0, 196, 364 + MENU_BAR_HEIGHT);
@@ -24,14 +32,14 @@ UIController::UIController(sf::RenderWindow& window) :
 void UIController::handleEvent(sf::Event event) {
     // TODO: Remove this hack
     if (event.type == sf::Event::EventType::MouseButtonReleased) {
-        if (isDragging) {
+        if (isDraggingRow) {
             tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
             pointsList->deselectItem();
         }
-        draggingIndex = NO_DRAGGING_INDEX;
-        isDragging = false;
+        rowDraggingIndex = NO_DRAGGING_INDEX;
+        isDraggingRow = false;
     } else if (event.type == sf::Event::EventType::KeyReleased && 
-        !isDragging &&
+        !isDraggingRow &&
         event.key.code == sf::Keyboard::Delete
     ) {
         tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
@@ -43,12 +51,40 @@ void UIController::handleEvent(sf::Event event) {
 
     if (!gui.handleEvent(event)) {
         // Event was not intercepted, which means the field was the target
-        if (event.type == sf::Event::MouseButtonReleased) {
+        if (event.type == sf::Event::MouseButtonPressed) {
             int pixelX = event.mouseButton.x;
             int pixelY = event.mouseButton.y;
+            for (int i = 0; i < pointSprites.size(); ++i) {
+                if (pointSprites[i].getGlobalBounds().contains(pixelX, pixelY)) {
+                    isDraggingPoint = true;
+                    pointDraggingIndex = i;
 
-            auto meters = metersRelativeToOrigin(pixelX, pixelY);
-            addPoint(meters.x, meters.y, pixelX, pixelY);
+                    window.setMouseCursor(grabCursor);
+                    break;
+                }
+            }
+        } else if (event.type == sf::Event::MouseButtonReleased) {
+            if (isDraggingPoint) {
+                isDraggingPoint = false;
+                pointDraggingIndex = -1;
+
+                window.setMouseCursor(defaultCursor);
+            } else {
+                int pixelX = event.mouseButton.x;
+                int pixelY = event.mouseButton.y;
+
+                auto meters = metersRelativeToOrigin(pixelX, pixelY);
+                addPoint(meters.x, meters.y, pixelX, pixelY);
+            }
+        } else if (event.type == sf::Event::MouseMoved && isDraggingPoint) {
+            setPoint(pointDraggingIndex, event.mouseMove.x, event.mouseMove.y, true);
+            if (pointDraggingIndex == 0) {
+                for (int i = 1; i < points.size(); ++i) {
+                    auto& spritePos = pointSprites.at(i).getPosition();
+                    setPoint(i, spritePos.x,
+                        spritePos.y, false);
+                }
+            }
         }
     }
 }
@@ -64,26 +100,26 @@ void UIController::itemSelected(int index) {
     if (index == -1 || index == 0) {
         return;
     }
-    if (draggingIndex != NO_DRAGGING_INDEX && 
-        draggingIndex != index) {
-        isDragging = true;
+    if (rowDraggingIndex != NO_DRAGGING_INDEX && 
+        rowDraggingIndex != index) {
+        isDraggingRow = true;
 
-        points.swap(draggingIndex, index);
+        points.swap(rowDraggingIndex, index);
 
         tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
-        auto& temp = pointsList->getItemRow(draggingIndex);
-        pointsList->changeItem(draggingIndex, pointsList->getItemRow(index));
+        auto& temp = pointsList->getItemRow(rowDraggingIndex);
+        pointsList->changeItem(rowDraggingIndex, pointsList->getItemRow(index));
         pointsList->changeItem(index, temp);
 
-        std::iter_swap(pointSprites.begin() + draggingIndex, pointSprites.begin() + index);
+        std::iter_swap(pointSprites.begin() + rowDraggingIndex, pointSprites.begin() + index);
     }
-    draggingIndex = index;
+    rowDraggingIndex = index;
 }
 
 void UIController::editRow(int index) {
     // Can't drag while editing!
-    isDragging = false;
-    draggingIndex = NO_DRAGGING_INDEX;
+    isDraggingRow = false;
+    rowDraggingIndex = NO_DRAGGING_INDEX;
 
     if (index == 0) {
         return;
@@ -123,8 +159,8 @@ void UIController::commitChange(const sf::String& str) {
 }
 
 void UIController::unfocused() {
-    isDragging = false;
-    draggingIndex = NO_DRAGGING_INDEX;
+    isDraggingRow = false;
+    rowDraggingIndex = NO_DRAGGING_INDEX;
 
     tgui::EditBox::Ptr editBox = gui.get<tgui::EditBox>("rowEditBox");
     gui.remove(editBox);
@@ -151,6 +187,24 @@ void UIController::addPoint(float meterX, float meterY, int pixelX, int pixelY) 
 void UIController::addPoint(float meterX, float meterY) {
     auto pixels = pixelsRelativeToOrigin(meterX, meterY);
     addPoint(meterX, meterY, pixels.x, pixels.y);
+}
+
+void UIController::setPoint(int index, int pixelX, int pixelY, bool draw) {
+    if (index == 0) {
+        points.setPoint(index, 0, 0);
+    } else {
+        auto meters = metersRelativeToOrigin(pixelX, pixelY);
+        points.setPoint(index, meters.x, meters.y);
+    }
+
+    tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
+
+    const Point& point = points.getPoint(index);
+    pointsList->changeItem(index, PointsList::toStrVector(point));
+
+    if (draw) {
+        pointSprites.at(index).setPosition(pixelX, pixelY);
+    }
 }
 
 void UIController::setPoint(int index, const sf::String& str) {
@@ -185,7 +239,7 @@ sf::Vector2f UIController::pixelsRelativeToOrigin(float meterX, float meterY) {
 }
 
 sf::Vector2f UIController::metersRelativeToOrigin(int pixelX, int pixelY) {
-    auto origin = pointSprites.at(0).getPosition();
+    auto& origin = pointSprites.at(0).getPosition();
     return {P2M(pixelX - origin.x), P2M(origin.y - pixelY)};
 }
 

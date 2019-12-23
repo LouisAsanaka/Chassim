@@ -22,6 +22,12 @@ int PointsList::addPoint(sf::String str) {
     return points.size() - 1;
 }
 
+void PointsList::setPoint(int index, double x, double y) {
+    Point& point = points.at(index);
+    point.x = x;
+    point.y = y;
+}
+
 void PointsList::setPoint(int index, double x, double y, double theta) {
     Point& point = points.at(index);
     point.x = x;
