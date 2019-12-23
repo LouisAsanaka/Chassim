@@ -1,7 +1,10 @@
 #include "robot.hpp"
+
+#include <Box2D/Box2D.h>
+#include <SFML/Graphics.hpp>
+
 #include "environment.hpp"
 #include "utils.hpp"
-#include <iostream>
 
 Robot::Robot(Environment& env, int x, int y) :
     env{env}, 

@@ -1,6 +1,9 @@
 #include "environment.hpp"
+
+#include <Box2D/Box2D.h>
+#include <SFML/Graphics.hpp>
+
 #include "utils.hpp"
-#include <numeric>
 
 Environment::Environment(const sf::Texture& texture) :
     world{b2Vec2{0.0f, 0.0f}},

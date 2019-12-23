@@ -1,7 +1,12 @@
 #include "pathgen.hpp"
+
 #include <iostream>
-#include <vector>
 #include <numeric>
+#include <vector>
+#include <string>
+
+#include "structs.hpp"
+#include "pathfinder/pathfinder.h"
 
 PathGenerator::PathGenerator(float trackwidth, double maxVel, double maxAccel, double maxJerk) :
     trackwidth{trackwidth},

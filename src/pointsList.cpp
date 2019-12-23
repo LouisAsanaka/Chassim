@@ -1,8 +1,10 @@
 #include "pointsList.hpp"
-#include <iostream>
+
+#include <TGUI/TGUI.hpp>
 #include <vector>
-#include <algorithm>
-#include <string>
+#include <sstream>
+
+#include "structs.hpp"
 
 PointsList::PointsList() {
 

@@ -1,11 +1,11 @@
 #include "simController.hpp"
-#include <iostream>
+
+#include <TGUI/TGUI.hpp>
 #include <vector>
-#include <algorithm>
-#include <cmath>
-#include "constants.hpp"
+
+#include "structs.hpp"
+#include "pointsList.hpp"
 #include "pathgen.hpp"
-#include "utils.hpp"
 #include "globals.hpp"
 
 sf::Cursor defaultCursor;

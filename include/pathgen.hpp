@@ -1,6 +1,7 @@
 #pragma once
+
 #include <vector>
-#include <string>
+
 #include "structs.hpp"
 #include "pathfinder/pathfinder.h"
 

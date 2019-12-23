@@ -1,8 +1,10 @@
 #pragma once
-#include "environment.hpp"
-#include "utils.hpp"
+
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
+
+#include "environment.hpp"
+#include "utils.hpp"
 
 #define ROBOT_SPRITE_SIZE 64.0f
 #define ROBOT_PHYSICAL_SIZE (P2M(ROBOT_SPRITE_SIZE))

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <TGUI/TGUI.hpp>
-#include "structs.hpp"
 #include <vector>
+
+#include "structs.hpp"
 
 class PointsList {
 public:

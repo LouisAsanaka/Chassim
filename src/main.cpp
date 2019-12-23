@@ -1,13 +1,7 @@
 #include "main.hpp"
-#include <TGUI/TGUI.hpp>
-#include <Box2D/Box2D.h>
-#include <iostream>
-#include <vector>
-#include "constants.hpp"
-#include "pathgen.hpp"
-#include "environment.hpp"
-#include "robot.hpp"
-#include "utils.hpp"
+
+#include <SFML/Graphics.hpp>
+
 #include "simController.hpp"
 
 sf::Texture field;
@@ -64,6 +58,4 @@ int main() {
         ui.draw();
         window.display();
     }
-
-    return 0;
 }

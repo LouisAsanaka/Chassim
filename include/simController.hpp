@@ -1,8 +1,9 @@
 #pragma once
-#include "structs.hpp"
+
 #include <TGUI/TGUI.hpp>
 #include <vector>
-#include <string>
+
+#include "structs.hpp"
 #include "pointsList.hpp"
 #include "environment.hpp"
 #include "pathgen.hpp"
