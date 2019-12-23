@@ -27,6 +27,11 @@ void Robot::setWheelSpeeds(float left, float right) {
     angularSpeed = (left - right) / ROBOT_PHYSICAL_SIZE;
 }
 
+void Robot::stop() {
+    linearSpeed = 0.0f;
+    angularSpeed = 0.0f;
+}
+
 ChassisSpeeds Robot::getChassisSpeeds() {
     return std::make_pair(linearSpeed, angularSpeed);
 }

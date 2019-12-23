@@ -49,6 +49,7 @@ private:
 
     PathGenerator pathGen;
     TrajectoryPair* traj = nullptr;
+    sf::Vertex* splinePoints = nullptr;
     int trajIndex = 0;
     bool isPathing = false;
 

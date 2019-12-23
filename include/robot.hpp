@@ -18,6 +18,7 @@ public:
     b2Body* getBody();
     void setChassisSpeeds(float linear, float angular);
     void setWheelSpeeds(float left, float right);
+    void stop();
     ChassisSpeeds getChassisSpeeds();
     WheelSpeeds getWheelSpeeds();
 

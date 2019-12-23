@@ -114,10 +114,8 @@ TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints) {
     pathfinder_modify_tank(
         trajectory, length, leftTrajectory, rightTrajectory, trackwidth);
 
-    free(trajectory);
-
     std::cout << "PathGenerator: Completely done generating path" << std::endl;
     std::cout << "PathGenerator: " + std::to_string(length) << std::endl;
 
-    return new TrajectoryPair{leftTrajectory, rightTrajectory, length};
+    return new TrajectoryPair{leftTrajectory, rightTrajectory, trajectory, length};
 }

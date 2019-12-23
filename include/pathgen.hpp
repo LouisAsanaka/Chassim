@@ -7,6 +7,7 @@
 struct TrajectoryPair {
     Segment* left;
     Segment* right;
+    Segment* original;
     int length;
 };
 

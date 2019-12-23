@@ -35,18 +35,21 @@ void UIController::handleEvent(sf::Event event) {
         case sf::Keyboard::Delete:
             if (index != -1 && index != 0) {
                 removePoint(index);
+                generateProfile();
             }
             break;
         case sf::Keyboard::Up:
             if (index > 1) {
                 swapPoints(index, index - 1);
                 pointsList->setSelectedItem(index - 1);
+                generateProfile();
             }
             break;
         case sf::Keyboard::Down:
             if (index > 0 && index < pointsList->getItemCount() - 1) {
                 swapPoints(index, index + 1);
                 pointsList->setSelectedItem(index + 1);
+                generateProfile();
             }
             break;
         }
@@ -74,6 +77,8 @@ void UIController::handleEvent(sf::Event event) {
                 pointDraggingIndex = -1;
 
                 window.setMouseCursor(defaultCursor);
+
+                generateProfile();
             } else {
                 int pixelX = event.mouseButton.x;
                 int pixelY = event.mouseButton.y;
@@ -81,6 +86,7 @@ void UIController::handleEvent(sf::Event event) {
                 if (window.getViewport(window.getDefaultView()).contains(pixelX, pixelY)) {
                     auto meters = metersRelativeToOrigin(pixelX, pixelY);
                     addPoint(meters.x, meters.y, pixelX, pixelY);
+                    generateProfile();
                 }
             }
         case sf::Event::MouseMoved:
@@ -122,6 +128,11 @@ void UIController::draw() {
     for (auto& pointSprite: pointSprites) {
         window.draw(pointSprite);
     }
+
+    if (splinePoints != nullptr) {
+        window.draw(splinePoints, traj->length, sf::Points);
+    }
+    
     gui.draw();
 }
 
@@ -170,6 +181,7 @@ void UIController::commitChange(const sf::String& str) {
     } else {
         setPoint(index, str);
     }
+    generateProfile();
     editBox->setFocused(false); // Unfocusing the box deletes it
 }
 
@@ -182,6 +194,7 @@ void UIController::clearPoints() {
     for (int i = points.size() - 1; i > 0; --i) {
         removePoint(i);
     }
+    splinePoints = nullptr;
 }
 
 void UIController::resetRobot() {
@@ -191,9 +204,13 @@ void UIController::resetRobot() {
     robot.setPosition(
         origin.x, origin.y - MENU_BAR_HEIGHT
     );
+    robot.stop();
 }
 
 void UIController::generateProfile() {
+    if (points.size() < 2) {
+        return;
+    }
     std::vector<Point> waypoints = points.getPoints();
     for (auto& point : waypoints) {
         point.theta = point.theta * PI / 180;
@@ -201,9 +218,21 @@ void UIController::generateProfile() {
     if (traj != nullptr) {
         delete traj->left;
         delete traj->right;
+        delete traj->original;
         delete traj;
     }
+    if (splinePoints != nullptr) {
+        delete[] splinePoints;
+    }
     traj = pathGen.generatePath(waypoints);
+
+    splinePoints = new sf::Vertex[traj->length];
+    auto origin = pointSprites.at(0).getPosition();
+    for (int i = 0; i < traj->length; i++) {
+        auto& p = *(traj->original + i);
+        splinePoints[i] = sf::Vertex(
+            origin + sf::Vector2f{(float) M2P(p.x), (float) -M2P(p.y)}, sf::Color::Yellow);
+    }
 }
 
 void UIController::executeProfile() {
