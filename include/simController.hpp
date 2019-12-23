@@ -11,9 +11,9 @@
 extern sf::Cursor defaultCursor;
 extern sf::Cursor grabCursor;
 
-class UIController {
+class SimController {
 public:
-    UIController(sf::RenderWindow& window);
+    SimController(sf::RenderWindow& window);
 
     void handleEvent(sf::Event event);
     void update();

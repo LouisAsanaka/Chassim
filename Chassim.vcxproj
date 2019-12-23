@@ -27,7 +27,7 @@
     <ClCompile Include="src\pathgen.cpp" />
     <ClCompile Include="src\pointsList.cpp" />
     <ClCompile Include="src\robot.cpp" />
-    <ClCompile Include="src\uiController.cpp" />
+    <ClCompile Include="src\simController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\constants.hpp" />
@@ -51,7 +51,7 @@
     <ClInclude Include="include\pointsList.hpp" />
     <ClInclude Include="include\robot.hpp" />
     <ClInclude Include="include\structs.hpp" />
-    <ClInclude Include="include\uiController.hpp" />
+    <ClInclude Include="include\simController.hpp" />
     <ClInclude Include="include\utils.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

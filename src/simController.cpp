@@ -1,4 +1,4 @@
-#include "uiController.hpp"
+#include "simController.hpp"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -11,7 +11,7 @@
 sf::Cursor defaultCursor;
 sf::Cursor grabCursor;
 
-UIController::UIController(sf::RenderWindow& window) :
+SimController::SimController(sf::RenderWindow& window) :
     window{window},
     gui{window},
     env{field},
@@ -25,7 +25,7 @@ UIController::UIController(sf::RenderWindow& window) :
     addPoint(0, 0, 196, 364 + MENU_BAR_HEIGHT);
 }
 
-void UIController::handleEvent(sf::Event event) {
+void SimController::handleEvent(sf::Event event) {
     // TODO: Remove this hack
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
     int index = pointsList->getSelectedItemIndex();
@@ -104,7 +104,7 @@ void UIController::handleEvent(sf::Event event) {
     }
 }
 
-void UIController::update() {
+void SimController::update() {
     env.update();
 
     if (isPathing) {
@@ -118,7 +118,7 @@ void UIController::update() {
     robot.update();
 }
 
-void UIController::draw() {
+void SimController::draw() {
     // Render the sprites
     window.clear(sf::Color::White);
 
@@ -136,7 +136,7 @@ void UIController::draw() {
     gui.draw();
 }
 
-void UIController::itemSelected(int index) {
+void SimController::itemSelected(int index) {
     if (index == -1) {
         return;
     }
@@ -151,7 +151,7 @@ void UIController::itemSelected(int index) {
     prevSelectedIndex = index;
 }
 
-void UIController::editRow(int index) {
+void SimController::editRow(int index) {
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
 
     tgui::EditBox::Ptr editBox = tgui::EditBox::create();
@@ -167,13 +167,13 @@ void UIController::editRow(int index) {
         pointsList->getItemCell(index, 2)
     );
     editBox->setUserData(index);
-    editBox->connect("Unfocused", &UIController::unfocused, this);
-    editBox->connect("ReturnKeyPressed", &UIController::commitChange, this);
+    editBox->connect("Unfocused", &SimController::unfocused, this);
+    editBox->connect("ReturnKeyPressed", &SimController::commitChange, this);
     gui.add(editBox, "rowEditBox");
     editBox->setFocused(true);
 }
 
-void UIController::commitChange(const sf::String& str) {
+void SimController::commitChange(const sf::String& str) {
     tgui::EditBox::Ptr editBox = gui.get<tgui::EditBox>("rowEditBox");
     int index = editBox->getUserData<int>();
     if (str.isEmpty()) {
@@ -185,19 +185,19 @@ void UIController::commitChange(const sf::String& str) {
     editBox->setFocused(false); // Unfocusing the box deletes it
 }
 
-void UIController::unfocused() {
+void SimController::unfocused() {
     tgui::EditBox::Ptr editBox = gui.get<tgui::EditBox>("rowEditBox");
     gui.remove(editBox);
 }
 
-void UIController::clearPoints() {
+void SimController::clearPoints() {
     for (int i = points.size() - 1; i > 0; --i) {
         removePoint(i);
     }
     splinePoints = nullptr;
 }
 
-void UIController::resetRobot() {
+void SimController::resetRobot() {
     isPathing = false;
 
     auto& origin = pointSprites.at(0).getPosition();
@@ -207,7 +207,7 @@ void UIController::resetRobot() {
     robot.stop();
 }
 
-void UIController::generateProfile() {
+void SimController::generateProfile() {
     if (points.size() < 2) {
         return;
     }
@@ -235,7 +235,7 @@ void UIController::generateProfile() {
     }
 }
 
-void UIController::executeProfile() {
+void SimController::executeProfile() {
     if (!isPathing && traj != nullptr) {
         isPathing = true;
         trajIndex = 0;
@@ -247,7 +247,7 @@ void UIController::executeProfile() {
     }
 }
 
-void UIController::addPoint(float meterX, float meterY, int pixelX, int pixelY) {
+void SimController::addPoint(float meterX, float meterY, int pixelX, int pixelY) {
     // Model point
     points.addPoint(meterX, meterY);
 
@@ -266,12 +266,12 @@ void UIController::addPoint(float meterX, float meterY, int pixelX, int pixelY) 
     shape.setOutlineColor(sf::Color::Red);
 }
 
-void UIController::addPoint(float meterX, float meterY) {
+void SimController::addPoint(float meterX, float meterY) {
     auto pixels = pixelsRelativeToOrigin(meterX, meterY);
     addPoint(meterX, meterY, pixels.x, pixels.y);
 }
 
-void UIController::setPoint(int index, int pixelX, int pixelY, bool draw) {
+void SimController::setPoint(int index, int pixelX, int pixelY, bool draw) {
     if (index == 0) {
         points.setPoint(index, 0, 0);
     } else {
@@ -289,7 +289,7 @@ void UIController::setPoint(int index, int pixelX, int pixelY, bool draw) {
     }
 }
 
-void UIController::setPoint(int index, const sf::String& str) {
+void SimController::setPoint(int index, const sf::String& str) {
     if (points.setPoint(index, str)) {
         tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
 
@@ -302,7 +302,7 @@ void UIController::setPoint(int index, const sf::String& str) {
     }
 }
 
-void UIController::swapPoints(int index1, int index2) {
+void SimController::swapPoints(int index1, int index2) {
     points.swap(index1, index2);
 
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
@@ -313,7 +313,7 @@ void UIController::swapPoints(int index1, int index2) {
     std::iter_swap(pointSprites.begin() + index1, pointSprites.begin() + index2);
 }
 
-void UIController::removePoint(int index) {
+void SimController::removePoint(int index) {
     points.removePoint(index);
 
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
@@ -322,37 +322,37 @@ void UIController::removePoint(int index) {
     pointSprites.erase(pointSprites.begin() + index);
 }
 
-sf::Vector2f UIController::pixelsRelativeToOrigin(float meterX, float meterY) {
+sf::Vector2f SimController::pixelsRelativeToOrigin(float meterX, float meterY) {
     auto& origin = pointSprites.at(0);
     sf::Vector2f pos{M2P(meterX), -M2P(meterY)};
     pos += origin.getPosition();
     return pos;
 }
 
-sf::Vector2f UIController::metersRelativeToOrigin(int pixelX, int pixelY) {
+sf::Vector2f SimController::metersRelativeToOrigin(int pixelX, int pixelY) {
     auto& origin = pointSprites.at(0).getPosition();
     return {P2M(pixelX - origin.x), P2M(origin.y - pixelY)};
 }
 
-std::vector<Point> UIController::getPoints() {
+std::vector<Point> SimController::getPoints() {
     return points.getPoints();
 }
 
-void UIController::createComponents() {
+void SimController::createComponents() {
     // Make the top menu bar
     tgui::MenuBar::Ptr menuBar = tgui::MenuBar::create();
     menuBar->setTextSize(16);
     menuBar->setSize({"parent.width", MENU_BAR_HEIGHT});
     menuBar->addMenu("Edit");
     menuBar->addMenuItem("Clear Points");
-    menuBar->connectMenuItem("Edit", "Clear Points", &UIController::clearPoints, this);
+    menuBar->connectMenuItem("Edit", "Clear Points", &SimController::clearPoints, this);
     menuBar->addMenuItem("Reset Robot");
-    menuBar->connectMenuItem("Edit", "Reset Robot", &UIController::resetRobot, this);
+    menuBar->connectMenuItem("Edit", "Reset Robot", &SimController::resetRobot, this);
     menuBar->addMenu("Pathing");
     menuBar->addMenuItem("Generate Profile");
-    menuBar->connectMenuItem("Pathing", "Generate Profile", &UIController::generateProfile, this);
+    menuBar->connectMenuItem("Pathing", "Generate Profile", &SimController::generateProfile, this);
     menuBar->addMenuItem("Execute Profile");
-    menuBar->connectMenuItem("Pathing", "Execute Profile", &UIController::executeProfile, this);
+    menuBar->connectMenuItem("Pathing", "Execute Profile", &SimController::executeProfile, this);
     gui.add(menuBar, "menuBar");
 
     // Make the table of points
@@ -363,8 +363,8 @@ void UIController::createComponents() {
     pointsList->setHeaderHeight(35);
     pointsList->setHeaderSeparatorHeight(1);
     pointsList->setItemHeight(30);
-    pointsList->connect("ItemSelected", &UIController::itemSelected, this);
-    pointsList->connect("DoubleClicked", &UIController::editRow, this);
+    pointsList->connect("ItemSelected", &SimController::itemSelected, this);
+    pointsList->connect("DoubleClicked", &SimController::editRow, this);
 
     // Create the columns
     pointsList->addColumn("X (m)", POINTS_LIST_COLUMN_WIDTH);

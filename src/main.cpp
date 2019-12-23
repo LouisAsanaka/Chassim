@@ -8,7 +8,7 @@
 #include "environment.hpp"
 #include "robot.hpp"
 #include "utils.hpp"
-#include "uiController.hpp"
+#include "simController.hpp"
 
 sf::Texture field;
 
@@ -34,7 +34,7 @@ int main() {
     window.setPosition(sf::Vector2i(CENTER_X, CENTER_Y));
 
     // Create the GUI
-    UIController ui{window};
+    SimController ui{window};
 
     while (window.isOpen()) {
         // Process events

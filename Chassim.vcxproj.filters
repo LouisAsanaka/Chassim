@@ -86,7 +86,7 @@
     <ClCompile Include="src\pointsList.cpp">
       <Filter>src\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\uiController.cpp">
+    <ClCompile Include="src\simController.cpp">
       <Filter>src\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -154,10 +154,10 @@
     <ClInclude Include="include\pointsList.hpp">
       <Filter>include\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\uiController.hpp">
+    <ClInclude Include="include\globals.hpp">
       <Filter>include\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\globals.hpp">
+    <ClInclude Include="include\simController.hpp">
       <Filter>include\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
