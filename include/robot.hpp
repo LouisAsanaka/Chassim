@@ -6,7 +6,8 @@
 #include "field.hpp"
 #include "environment.hpp"
 
-#define ROBOT_SPRITE_SIZE 64.0f
+#define ROBOT_IMAGE_NAME "asset/robot.png"
+#define ROBOT_METADATA_NAME "asset/robot.json"
 
 typedef std::pair<float, float> ChassisSpeeds;
 typedef std::pair<float, float> WheelSpeeds;
@@ -15,7 +16,9 @@ class Robot {
 public:
     Robot(Environment& env, int x, int y);
 
-    float getPhysicalSize();
+    sf::Vector2u getPixelSize() const;
+    sf::Vector2f getPhysicalSize() const;
+    float getTrackWidth() const;
 
     b2Body* getBody();
     void setChassisSpeeds(float linear, float angular);
@@ -31,8 +34,8 @@ public:
 private:
     void createRobot(int x, int y);
 
-    float physicalSize;
-    float halfTrackWidth;
+    sf::Vector2f physicalSize;
+    float trackWidth;
 
     sf::Texture texture;
     sf::Sprite sprite;

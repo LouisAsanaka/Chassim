@@ -18,6 +18,10 @@ const sf::Texture& Field::getTexture() const {
     return texture;
 }
 
+const sf::Vector2i& Field::getSpawnPoint() const {
+    return spawnPoint;
+}
+
 const int Field::getPixelsPerMeter() const {
     return pixelsPerMeter;
 }
@@ -40,6 +44,9 @@ void Field::loadData() {
     file >> metadata;
 
     metadata["pixelsPerMeter"].get_to(pixelsPerMeter);
+    spawnPoint = sf::Vector2i{
+        metadata["spawnPoint"][0].get<int>(), metadata["spawnPoint"][1].get<int>()
+    };
 
     auto& wallsData = metadata["walls"];
     for (auto& wallData : wallsData) {

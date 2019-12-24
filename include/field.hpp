@@ -14,6 +14,7 @@ public:
 
     const sf::Texture& getTexture() const;
     const int getPixelsPerMeter() const;
+    const sf::Vector2i& getSpawnPoint() const;
     const std::vector<std::vector<b2Vec2>>& getWalls() const;
     const std::vector<std::vector<b2Vec2>>& getPolygons() const;
 
@@ -30,6 +31,7 @@ private:
 
     sf::Texture texture;
     int pixelsPerMeter;
+    sf::Vector2i spawnPoint;
     std::vector<std::vector<b2Vec2>> walls;
     std::vector<std::vector<b2Vec2>> polygons;
 };

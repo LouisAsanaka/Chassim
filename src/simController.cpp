@@ -17,14 +17,14 @@ SimController::SimController(sf::RenderWindow& window, Field& field) :
     gui{window},
     field{field},
     env{field},
-    robot{env, 196, 364},
-    pathGen{robot.getPhysicalSize(), 3.0, 4.0, 20.0} {
+    robot{env, field.getSpawnPoint().x, field.getSpawnPoint().y},
+    pathGen{robot.getTrackWidth(), 3.0, 4.0, 20.0} {
     defaultCursor.loadFromSystem(sf::Cursor::Type::Arrow);
     grabCursor.loadFromSystem(sf::Cursor::Type::Hand);
 
     createComponents();
 
-    addPoint(0, 0, 196, 364 + MENU_BAR_HEIGHT);
+    addPoint(0, 0, field.getSpawnPoint().x, field.getSpawnPoint().y + MENU_BAR_HEIGHT);
 }
 
 void SimController::handleEvent(sf::Event event) {

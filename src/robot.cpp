@@ -1,7 +1,10 @@
 #include "robot.hpp"
 
+#include <fstream>
+
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
+#include "json.hpp"
 
 #include "constants.hpp"
 #include "environment.hpp"
@@ -9,18 +12,37 @@
 Robot::Robot(Environment& env, int x, int y) :
     env{env},
     field{env.getField()},
-    physicalSize{env.getField().p2m(ROBOT_SPRITE_SIZE)},
-    halfTrackWidth{physicalSize / 2},
     texture{},
     sprite{} {
-    texture.loadFromFile("asset/robot.png");
+    texture.loadFromFile(ROBOT_IMAGE_NAME);
+
+    float xSize = getPixelSize().x;
+    float ySize = getPixelSize().y;
+
+    physicalSize = sf::Vector2f{field.p2m(xSize), field.p2m(ySize)};
+
+    std::ifstream file{ROBOT_METADATA_NAME};
+    nlohmann::json metadata;
+    file >> metadata;
+
+    metadata["trackWidthPixel"].get_to(trackWidth);
+    trackWidth = field.p2m(trackWidth);
+
     sprite.setTexture(texture);
-    sprite.setOrigin(ROBOT_SPRITE_SIZE / 2, ROBOT_SPRITE_SIZE / 2);
+    sprite.setOrigin(xSize / 2, ySize / 2);
     createRobot(x, y);
 }
 
-float Robot::getPhysicalSize() {
+sf::Vector2u Robot::getPixelSize() const {
+    return texture.getSize();
+}
+
+sf::Vector2f Robot::getPhysicalSize() const {
     return physicalSize;
+}
+
+float Robot::getTrackWidth() const {
+    return trackWidth;
 }
 
 b2Body* Robot::getBody() {
@@ -34,7 +56,7 @@ void Robot::setChassisSpeeds(float linear, float angular) {
 
 void Robot::setWheelSpeeds(float left, float right) {
     linearSpeed = (left + right) / 2;
-    angularSpeed = (left - right) / physicalSize;
+    angularSpeed = (left - right) / trackWidth;
 }
 
 void Robot::stop() {
@@ -47,8 +69,8 @@ ChassisSpeeds Robot::getChassisSpeeds() {
 }
 
 WheelSpeeds Robot::getWheelSpeeds() {
-    return std::make_pair(linearSpeed - halfTrackWidth * angularSpeed,
-        linearSpeed + halfTrackWidth * angularSpeed);
+    return std::make_pair(linearSpeed - (trackWidth / 2) * angularSpeed,
+        linearSpeed + (trackWidth / 2) * angularSpeed);
 }
 
 void Robot::setPosition(int x, int y, float theta) {
@@ -87,7 +109,7 @@ void Robot::createRobot(int x, int y) {
     body = env.getWorld().CreateBody(&bodyDef);
 
     b2PolygonShape shape;
-    shape.SetAsBox(physicalSize / 2, physicalSize / 2);
+    shape.SetAsBox(physicalSize.x / 2, physicalSize.y / 2);
 
     b2FixtureDef fixtureDef;
     fixtureDef.density = 100.0f;
