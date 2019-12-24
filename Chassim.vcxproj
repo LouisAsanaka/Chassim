@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\environment.cpp" />
+    <ClCompile Include="src\field.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\pathfinder\error.c" />
     <ClCompile Include="src\pathfinder\fit\hermite.c" />
@@ -32,7 +33,7 @@
   <ItemGroup>
     <ClInclude Include="include\constants.hpp" />
     <ClInclude Include="include\environment.hpp" />
-    <ClInclude Include="include\globals.hpp" />
+    <ClInclude Include="include\field.hpp" />
     <ClInclude Include="include\main.hpp" />
     <ClInclude Include="include\pathfinder\error.h" />
     <ClInclude Include="include\pathfinder\fit.h" />
@@ -89,19 +90,19 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-system.lib;tgui.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\libraries\Box2D\lib;D:\libraries\SFML-2.5.1\lib;D:\libraries\TGUI-0.8\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\libraries\Box2D-5ae818e\lib;D:\libraries\SFML-2.5.1\lib;D:\libraries\TGUI-0.8.6\lib</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;D:\libraries\Box2D\include;D:\libraries\SFML-2.5.1\include;D:\libraries\TGUI-0.8\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;D:\libraries\Box2D-5ae818e\include;D:\libraries\SFML-2.5.1\include;D:\libraries\TGUI-0.8.6\include;D:\libraries\json-3.7.3\include</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
       <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;tgui-d.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\libraries\Box2D\lib;D:\libraries\SFML-2.5.1\lib;D:\libraries\TGUI-0.8\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\libraries\Box2D-5ae818e\lib;D:\libraries\SFML-2.5.1\lib;D:\libraries\TGUI-0.8.6\lib</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;D:\libraries\Box2D\include;D:\libraries\SFML-2.5.1\include;D:\libraries\TGUI-0.8\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;D:\libraries\Box2D-5ae818e\include;D:\libraries\SFML-2.5.1\include;D:\libraries\TGUI-0.8.6\include;D:\libraries\json-3.7.3\include</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

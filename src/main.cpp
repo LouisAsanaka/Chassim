@@ -3,18 +3,14 @@
 #include <SFML/Graphics.hpp>
 
 #include "simController.hpp"
-
-sf::Texture field;
-
-void initTextures() {
-    field.loadFromFile("asset/field.png");
-}
+#include "constants.hpp"
+#include "field.hpp"
 
 int main() {
-    initTextures();
+    Field field;
 
     // Initialize the window
-    sf::Vector2u windowSize{field.getSize()};
+    sf::Vector2u windowSize{field.getTexture().getSize()};
     windowSize += sf::Vector2u{POINTS_LIST_WIDTH, MENU_BAR_HEIGHT};
 
     sf::RenderWindow window{
@@ -27,7 +23,7 @@ int main() {
     const int CENTER_Y = sf::VideoMode::getDesktopMode().height / 2 - windowSize.y / 2;
     window.setPosition(sf::Vector2i(CENTER_X, CENTER_Y));
 
-    SimController controller{window};
+    SimController controller{window, field};
 
     while (window.isOpen()) {
         // Process events

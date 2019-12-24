@@ -5,6 +5,7 @@
 
 #include "structs.hpp"
 #include "pointsList.hpp"
+#include "field.hpp"
 #include "environment.hpp"
 #include "pathgen.hpp"
 #include "robot.hpp"
@@ -14,7 +15,7 @@ extern sf::Cursor grabCursor;
 
 class SimController {
 public:
-    SimController(sf::RenderWindow& window);
+    SimController(sf::RenderWindow& window, Field& field);
 
     void handleEvent(sf::Event event);
     void update();

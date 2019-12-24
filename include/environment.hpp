@@ -1,18 +1,22 @@
 #pragma once
 
+#include <vector>
+
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
 
+#include "field.hpp"
+
 class Environment {
 public:
-    Environment(const sf::Texture& texture);
+    Environment(Field& field);
 
     b2World& getWorld();
     void update();
     void render(sf::RenderWindow& window);
 private:
-    void createBoundary(int startX, int startY, int endX, int endY);
-    void createRocket(const b2Vec2* points, int length = 6);
+    void createWall(const std::vector<b2Vec2>& vec);
+    void createPolygon(const std::vector<b2Vec2>& vec);
 
     sf::Texture texture;
     sf::Sprite sprite;

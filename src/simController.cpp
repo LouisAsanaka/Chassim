@@ -3,15 +3,15 @@
 #include <TGUI/TGUI.hpp>
 #include <vector>
 
+#include "field.hpp"
 #include "structs.hpp"
 #include "pointsList.hpp"
 #include "pathgen.hpp"
-#include "globals.hpp"
 
 sf::Cursor defaultCursor;
 sf::Cursor grabCursor;
 
-SimController::SimController(sf::RenderWindow& window) :
+SimController::SimController(sf::RenderWindow& window, Field& field) :
     window{window},
     gui{window},
     env{field},
