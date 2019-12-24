@@ -53,7 +53,6 @@
     <ClInclude Include="include\robot.hpp" />
     <ClInclude Include="include\structs.hpp" />
     <ClInclude Include="include\simController.hpp" />
-    <ClInclude Include="include\utils.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

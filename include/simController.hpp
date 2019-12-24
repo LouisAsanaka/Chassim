@@ -46,6 +46,7 @@ private:
     sf::RenderWindow& window;
     tgui::Gui gui;
 
+    Field& field;
     Environment env;
     Robot robot;
 

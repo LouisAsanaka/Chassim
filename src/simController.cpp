@@ -3,6 +3,7 @@
 #include <TGUI/TGUI.hpp>
 #include <vector>
 
+#include "constants.hpp"
 #include "field.hpp"
 #include "structs.hpp"
 #include "pointsList.hpp"
@@ -14,9 +15,10 @@ sf::Cursor grabCursor;
 SimController::SimController(sf::RenderWindow& window, Field& field) :
     window{window},
     gui{window},
+    field{field},
     env{field},
     robot{env, 196, 364},
-    pathGen{ROBOT_PHYSICAL_SIZE, 3.0, 4.0, 20.0} {
+    pathGen{robot.getPhysicalSize(), 3.0, 4.0, 20.0} {
     defaultCursor.loadFromSystem(sf::Cursor::Type::Arrow);
     grabCursor.loadFromSystem(sf::Cursor::Type::Hand);
 
@@ -254,7 +256,7 @@ void SimController::generateProfile() {
     for (int i = 0; i < traj->length; i++) {
         auto& p = *(traj->original + i);
         splinePoints[i] = sf::Vertex(
-            origin + sf::Vector2f{(float) M2P(p.x), (float) -M2P(p.y)}, sf::Color::Yellow);
+            origin + sf::Vector2f{field.m2p(p.x), -field.m2p(p.y)}, sf::Color::Yellow);
     }
 }
 
@@ -348,14 +350,14 @@ void SimController::removePoint(int index) {
 
 sf::Vector2f SimController::pixelsRelativeToOrigin(float meterX, float meterY) {
     auto& origin = pointSprites.at(0);
-    sf::Vector2f pos{M2P(meterX), -M2P(meterY)};
+    sf::Vector2f pos{field.m2p(meterX), -field.m2p(meterY)};
     pos += origin.getPosition();
     return pos;
 }
 
 sf::Vector2f SimController::metersRelativeToOrigin(int pixelX, int pixelY) {
     auto& origin = pointSprites.at(0).getPosition();
-    return {P2M(pixelX - origin.x), P2M(origin.y - pixelY)};
+    return {field.p2m(pixelX - origin.x), field.p2m(origin.y - pixelY)};
 }
 
 std::vector<Point> SimController::getPoints() {

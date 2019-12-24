@@ -12,14 +12,24 @@ class Field {
 public:
     Field();
 
-    const sf::Texture& getTexture();
-    const std::vector<std::vector<b2Vec2>>& getWalls();
-    const std::vector<std::vector<b2Vec2>>& getPolygons();
+    const sf::Texture& getTexture() const;
+    const int getPixelsPerMeter() const;
+    const std::vector<std::vector<b2Vec2>>& getWalls() const;
+    const std::vector<std::vector<b2Vec2>>& getPolygons() const;
+
+    const inline float p2m(float coord) const {
+        return coord / pixelsPerMeter;
+    }
+
+    const inline float m2p(float coord) const {
+        return coord * pixelsPerMeter;
+    }
 private:
     void loadImage();
     void loadData();
 
     sf::Texture texture;
+    int pixelsPerMeter;
     std::vector<std::vector<b2Vec2>> walls;
     std::vector<std::vector<b2Vec2>> polygons;
 };

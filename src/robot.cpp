@@ -3,17 +3,24 @@
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
 
+#include "constants.hpp"
 #include "environment.hpp"
-#include "utils.hpp"
 
 Robot::Robot(Environment& env, int x, int y) :
-    env{env}, 
+    env{env},
+    field{env.getField()},
+    physicalSize{env.getField().p2m(ROBOT_SPRITE_SIZE)},
+    halfTrackWidth{physicalSize / 2},
     texture{},
     sprite{} {
     texture.loadFromFile("asset/robot.png");
     sprite.setTexture(texture);
     sprite.setOrigin(ROBOT_SPRITE_SIZE / 2, ROBOT_SPRITE_SIZE / 2);
     createRobot(x, y);
+}
+
+float Robot::getPhysicalSize() {
+    return physicalSize;
 }
 
 b2Body* Robot::getBody() {
@@ -27,7 +34,7 @@ void Robot::setChassisSpeeds(float linear, float angular) {
 
 void Robot::setWheelSpeeds(float left, float right) {
     linearSpeed = (left + right) / 2;
-    angularSpeed = (left - right) / ROBOT_PHYSICAL_SIZE;
+    angularSpeed = (left - right) / physicalSize;
 }
 
 void Robot::stop() {
@@ -40,12 +47,12 @@ ChassisSpeeds Robot::getChassisSpeeds() {
 }
 
 WheelSpeeds Robot::getWheelSpeeds() {
-    return std::make_pair(linearSpeed - HALF_TRACKWIDTH * angularSpeed,
-        linearSpeed + HALF_TRACKWIDTH * angularSpeed);
+    return std::make_pair(linearSpeed - halfTrackWidth * angularSpeed,
+        linearSpeed + halfTrackWidth * angularSpeed);
 }
 
 void Robot::setPosition(int x, int y, float theta) {
-    body->SetTransform(b2Vec2{P2M(x), P2M(y)}, theta);
+    body->SetTransform(b2Vec2{field.p2m(x), field.p2m(y)}, theta);
 }
 
 void Robot::update() {
@@ -68,19 +75,19 @@ void Robot::update() {
 }
 
 void Robot::render(sf::RenderWindow& window) {
-    sprite.setPosition(M2P(body->GetPosition().x), M2P(body->GetPosition().y) + MENU_BAR_HEIGHT);
+    sprite.setPosition(field.m2p(body->GetPosition().x), field.m2p(body->GetPosition().y) + MENU_BAR_HEIGHT);
     sprite.setRotation(body->GetAngle() * 180 / b2_pi);
     window.draw(sprite);
 }
 
 void Robot::createRobot(int x, int y) {
     b2BodyDef bodyDef;
-    bodyDef.position = b2Vec2(P2M(x), P2M(y));
+    bodyDef.position = b2Vec2(field.p2m(x), field.p2m(y));
     bodyDef.type = b2_dynamicBody;
     body = env.getWorld().CreateBody(&bodyDef);
 
     b2PolygonShape shape;
-    shape.SetAsBox(P2M(ROBOT_SPRITE_SIZE / 2), P2M(ROBOT_SPRITE_SIZE / 2));
+    shape.SetAsBox(physicalSize / 2, physicalSize / 2);
 
     b2FixtureDef fixtureDef;
     fixtureDef.density = 100.0f;

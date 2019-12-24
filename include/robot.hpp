@@ -3,12 +3,10 @@
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
 
+#include "field.hpp"
 #include "environment.hpp"
-#include "utils.hpp"
 
 #define ROBOT_SPRITE_SIZE 64.0f
-#define ROBOT_PHYSICAL_SIZE (P2M(ROBOT_SPRITE_SIZE))
-#define HALF_TRACKWIDTH ROBOT_PHYSICAL_SIZE / 2
 
 typedef std::pair<float, float> ChassisSpeeds;
 typedef std::pair<float, float> WheelSpeeds;
@@ -16,6 +14,8 @@ typedef std::pair<float, float> WheelSpeeds;
 class Robot {
 public:
     Robot(Environment& env, int x, int y);
+
+    float getPhysicalSize();
 
     b2Body* getBody();
     void setChassisSpeeds(float linear, float angular);
@@ -31,10 +31,14 @@ public:
 private:
     void createRobot(int x, int y);
 
+    float physicalSize;
+    float halfTrackWidth;
+
     sf::Texture texture;
     sf::Sprite sprite;
     b2Body* body;
     Environment& env;
+    Field& field;
 
     float linearSpeed = 0.0f;
     float angularSpeed = 0.0f;

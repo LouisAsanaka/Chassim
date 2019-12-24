@@ -5,11 +5,12 @@
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
 
+#include "constants.hpp"
 #include "field.hpp"
-#include "utils.hpp"
 
 Environment::Environment(Field& field) :
     world{b2Vec2{0.0f, 0.0f}},
+    field{field},
     texture{field.getTexture()},
     sprite{} {
 
@@ -22,6 +23,10 @@ Environment::Environment(Field& field) :
     for (auto& polygon : field.getPolygons()) {
         createPolygon(polygon);
     }
+}
+
+Field& Environment::getField() {
+    return field;
 }
 
 b2World& Environment::getWorld() {

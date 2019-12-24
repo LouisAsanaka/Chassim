@@ -7,7 +7,6 @@
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
 #include "json.hpp"
-#include "utils.hpp"
 
 Field::Field() :
     texture{}, walls{}, polygons{} {
@@ -15,15 +14,19 @@ Field::Field() :
     loadData();
 }
 
-const sf::Texture& Field::getTexture() {
+const sf::Texture& Field::getTexture() const {
     return texture;
 }
 
-const std::vector<std::vector<b2Vec2>>& Field::getWalls() {
+const int Field::getPixelsPerMeter() const {
+    return pixelsPerMeter;
+}
+
+const std::vector<std::vector<b2Vec2>>& Field::getWalls() const {
     return walls;
 }
 
-const std::vector<std::vector<b2Vec2>>& Field::getPolygons() {
+const std::vector<std::vector<b2Vec2>>& Field::getPolygons() const {
     return polygons;
 }
 
@@ -36,17 +39,19 @@ void Field::loadData() {
     nlohmann::json metadata;
     file >> metadata;
 
+    metadata["pixelsPerMeter"].get_to(pixelsPerMeter);
+
     auto& wallsData = metadata["walls"];
     for (auto& wallData : wallsData) {
         walls.emplace_back(
             std::initializer_list<b2Vec2>{
                 b2Vec2{
-                    P2M(wallData[0][0].get<float>()),
-                    P2M(wallData[0][1].get<float>())
+                    p2m(wallData[0][0].get<float>()),
+                    p2m(wallData[0][1].get<float>())
                 },
                 b2Vec2{
-                    P2M(wallData[1][0].get<float>()), 
-                    P2M(wallData[1][1].get<float>())
+                    p2m(wallData[1][0].get<float>()),
+                    p2m(wallData[1][1].get<float>())
                 },
             }
         );
@@ -57,7 +62,7 @@ void Field::loadData() {
         std::vector<b2Vec2> verticies;
         for (auto& polyCoords : polyData) {
             verticies.emplace_back(
-                P2M(polyCoords[0].get<float>()), P2M(polyCoords[1].get<float>()));
+                p2m(polyCoords[0].get<float>()), p2m(polyCoords[1].get<float>()));
         }
         polygons.push_back(std::move(verticies));
     }
