@@ -124,18 +124,18 @@ void SimController::update() {
         float left = 0.0f;
         float right = 0.0f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            left = 3.0f;
-            right = 3.0f;
+            left = 2.0f;
+            right = 2.0f;
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            left = -3.0f;
-            right = -3.0f;
+            left = -2.0f;
+            right = -2.0f;
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            left = 0.0f;
-            right = 3.0f;
+            left -= 2.0f;
+            right += 2.0f;
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-            left = 3.0f;
-            right = 0.0f;
+            left += 2.0f;
+            right -= 2.0f;
         }
         robot.setWheelSpeeds(left, right);
     }
