@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
+dependencies {
+    compile project(':pathgen')
+    compile 'com.google.code.gson:gson:2.8.5'
+}
+
+mainClassName = 'raidzero.chassim.Main'

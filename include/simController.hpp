@@ -2,12 +2,14 @@
 
 #include <TGUI/TGUI.hpp>
 #include <vector>
+#include <thread>
 
 #include "structs.hpp"
 #include "pointsList.hpp"
 #include "field.hpp"
 #include "environment.hpp"
-#include "pathgen.hpp"
+#include "javaProcess.hpp"
+#include "sfLine.hpp"
 #include "robot.hpp"
 
 extern sf::Cursor defaultCursor;
@@ -29,6 +31,8 @@ public:
     void clearPoints();
     void resetRobot();
     void generateProfile();
+    void fillPath(const char* bytes, size_t n);
+    void formPath();
     void executeProfile();
 
     void addPoint(float meterX, float meterY, int pixelX, int pixelY);
@@ -50,9 +54,13 @@ private:
     Environment env;
     Robot robot;
 
-    PathGenerator pathGen;
-    TrajectoryPair* traj = nullptr;
-    sf::Vertex* splinePoints = nullptr;
+    JavaProcess pathGen;
+    std::string bufferedResponse = "";
+    bool isFilling = false;
+    std::mutex bufferStatusMutex;
+    //TrajectoryPair* traj = nullptr;
+    //std::vector<sf::Vertex> splinePoints;
+    std::vector<sfLine> splineLines;
     int trajIndex = 0;
     bool isPathing = false;
 

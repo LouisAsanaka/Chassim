@@ -4,7 +4,7 @@
 
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
-#include "json.hpp"
+#include <json.hpp>
 
 #include "constants.hpp"
 #include "environment.hpp"

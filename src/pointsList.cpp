@@ -2,6 +2,7 @@
 
 #include <TGUI/TGUI.hpp>
 #include <vector>
+#include <numeric>
 #include <sstream>
 
 #include "structs.hpp"
@@ -17,17 +18,14 @@ int PointsList::addPoint(double x, double y, double theta) {
 
 int PointsList::addPoint(sf::String str) {
     auto data = parsePointStr(str, ',');
-    if (data.size() != 3) {
+    if (data.size() == 2) {
+        points.emplace_back(data[0], data[1]);
+    } else if (data.size() == 3) {
+        points.emplace_back(data[0], data[1], data[2]);
+    } else {
         return -1;
     }
-    points.emplace_back(data[0], data[1], data[2]);
     return points.size() - 1;
-}
-
-void PointsList::setPoint(int index, double x, double y) {
-    Point& point = points.at(index);
-    point.x = x;
-    point.y = y;
 }
 
 void PointsList::setPoint(int index, double x, double y, double theta) {
@@ -39,14 +37,13 @@ void PointsList::setPoint(int index, double x, double y, double theta) {
 
 bool PointsList::setPoint(int index, sf::String str) {
     auto data = parsePointStr(str, ',');
-    if (data.size() != 3) {
-        return false;
-    }
-    if (index == 0) {
-        setPoint(index, 0.0, 0.0, data[2]);
-    } else {
+    if (data.size() == 2) {
+        setPoint(index, data[0], data[1]);
+    } else if (data.size() == 3) {
         setPoint(index, data[0], data[1], data[2]);
-    }
+    } else {
+        return false;
+    }    
     return true;
 }
 
@@ -91,6 +88,10 @@ std::vector<sf::String> PointsList::toStrVector(const Point& point) {
     std::vector<sf::String> v;
     v.emplace_back(std::to_string(point.x));
     v.emplace_back(std::to_string(point.y));
-    v.emplace_back(std::to_string(point.theta));
+    if (std::isnan(point.theta)) {
+        v.emplace_back();
+    } else {
+        v.emplace_back(std::to_string(point.theta));
+    }
     return v;
 }

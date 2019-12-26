@@ -2,12 +2,18 @@
 
 #include <TGUI/TGUI.hpp>
 #include <vector>
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <thread>
+#include <json.hpp>
 
 #include "constants.hpp"
 #include "field.hpp"
 #include "structs.hpp"
 #include "pointsList.hpp"
 #include "pathgen.hpp"
+#include "sfLine.hpp"
 
 sf::Cursor defaultCursor;
 sf::Cursor grabCursor;
@@ -18,13 +24,15 @@ SimController::SimController(sf::RenderWindow& window, Field& field) :
     field{field},
     env{field},
     robot{env, field.getSpawnPoint().x, field.getSpawnPoint().y},
-    pathGen{robot.getTrackWidth(), 3.0, 4.0, 20.0} {
+    pathGen{[this](const char* bytes, size_t n) { return this->fillPath(bytes, n); }},
+    splineLines{} {
     defaultCursor.loadFromSystem(sf::Cursor::Type::Arrow);
     grabCursor.loadFromSystem(sf::Cursor::Type::Hand);
 
+    splineLines.reserve(1000);
     createComponents();
 
-    addPoint(0, 0, field.getSpawnPoint().x, field.getSpawnPoint().y + MENU_BAR_HEIGHT);
+    addPoint(0, 0, field.getOrigin().x, field.getOrigin().y + MENU_BAR_HEIGHT);
 }
 
 void SimController::handleEvent(sf::Event event) {
@@ -97,13 +105,6 @@ void SimController::handleEvent(sf::Event event) {
         case sf::Event::MouseMoved:
             if (isDraggingPoint) {
                 setPoint(pointDraggingIndex, event.mouseMove.x, event.mouseMove.y, true);
-                if (pointDraggingIndex == 0) {
-                    for (int i = 1; i < points.size(); ++i) {
-                        auto& spritePos = pointSprites.at(i).getPosition();
-                        setPoint(i, spritePos.x,
-                            spritePos.y, false);
-                    }
-                }
             }
         }
     }
@@ -113,12 +114,12 @@ void SimController::update() {
     env.update();
 
     if (isPathing) {
-        if (trajIndex < traj->length) {
+        /*if (trajIndex < traj->length) {
             robot.setWheelSpeeds(traj->left[trajIndex].velocity, traj->right[trajIndex].velocity);
             ++trajIndex;
         } else {
             isPathing = false;
-        }
+        }*/
     } else {
         // Manual control
         float left = 0.0f;
@@ -153,8 +154,11 @@ void SimController::draw() {
         window.draw(pointSprite);
     }
 
-    if (splinePoints != nullptr) {
-        window.draw(splinePoints, traj->length, sf::Points);
+    if (!splineLines.empty()) {
+        //window.draw(splinePoints.data(), splinePoints.size(), sf::Points);
+        for (auto& splineLine : splineLines) {
+            splineLine.draw(window, sf::RenderStates::Default);
+        }
     }
     
     gui.draw();
@@ -219,10 +223,14 @@ void SimController::unfocused() {
 }
 
 void SimController::clearPoints() {
-    for (int i = points.size() - 1; i > 0; --i) {
+    for (int i = points.size() - 1; i >= 0; --i) {
         removePoint(i);
     }
-    splinePoints = nullptr;
+    splineLines.clear();
+    addPoint(0, 0, field.getOrigin().x, field.getOrigin().y + MENU_BAR_HEIGHT);
+
+    std::lock_guard<std::mutex> lock(bufferStatusMutex);
+    bufferedResponse = "";
 }
 
 void SimController::resetRobot() {
@@ -236,36 +244,67 @@ void SimController::resetRobot() {
 }
 
 void SimController::generateProfile() {
+    if (!splineLines.empty()) {
+        splineLines.clear();
+    }
     if (points.size() < 2) {
         return;
     }
-    std::vector<Point> waypoints = points.getPoints();
-    for (auto& point : waypoints) {
-        point.theta = point.theta * PI / 180;
-    }
-    if (traj != nullptr) {
+    /*if (traj != nullptr) {
         delete traj->left;
         delete traj->right;
         delete traj->original;
         delete traj;
-    }
-    if (splinePoints != nullptr) {
-        delete[] splinePoints;
-    }
-    // TODO: Generate the modified tank trajectory only when executing the profile
-    traj = pathGen.generatePath(waypoints);
+    }*/
+    std::lock_guard<std::mutex> lock(bufferStatusMutex);
+    pathGen.send(points.getPoints(), 10, 20);
+}
 
-    splinePoints = new sf::Vertex[traj->length];
-    auto origin = pointSprites.at(0).getPosition();
-    for (int i = 0; i < traj->length; i++) {
-        auto& p = *(traj->original + i);
-        splinePoints[i] = sf::Vertex(
-            origin + sf::Vector2f{field.m2p(p.x), -field.m2p(p.y)}, sf::Color::Yellow);
+void SimController::fillPath(const char* bytes, size_t n) {
+    // Comes from a buffer, so look for the end of buffer
+    auto data = std::string(bytes, n);
+    bufferedResponse += data;
+
+    // End of buffer!
+    if (data[n - 2] == '\r' && data[n - 1] == '\n') {
+        formPath();
+        bufferedResponse = "";
+    }
+}
+
+void SimController::formPath() {
+    std::lock_guard<std::mutex> lock(bufferStatusMutex);
+
+    auto fullData = nlohmann::json::parse(bufferedResponse);
+    auto& pathPoints = fullData["path"];
+
+    int size = pathPoints.size();
+    if (splineLines.size() < size) {
+        splineLines.reserve(size);
+    }
+
+    auto& origin = field.getOrigin();
+    for (int i = 0; i < size - 1; ++i) {
+        auto& point = pathPoints[i];
+        auto& nextPoint = pathPoints[i + 1];
+        splineLines.emplace_back(
+            origin + sf::Vector2f{
+                field.m2p(point["x"].get<float>() * INCHES2METERS),
+                -field.m2p(point["y"].get<float>() * INCHES2METERS) + MENU_BAR_HEIGHT
+            },
+            origin + sf::Vector2f{
+                field.m2p(nextPoint["x"].get<float>() * INCHES2METERS),
+                -field.m2p(nextPoint["y"].get<float>() * INCHES2METERS) + MENU_BAR_HEIGHT
+            }
+        );
     }
 }
 
 void SimController::executeProfile() {
-    if (!isPathing && traj != nullptr) {
+    // TODO: Make the robot follow the path
+    return;
+
+    /*if (!isPathing && traj != nullptr) {
         isPathing = true;
         trajIndex = 0;
 
@@ -274,7 +313,7 @@ void SimController::executeProfile() {
             origin.x, origin.y - MENU_BAR_HEIGHT, -points.getPoint(0).theta * PI / 180
         );
         robot.stop();
-    }
+    }*/
 }
 
 void SimController::addPoint(float meterX, float meterY, int pixelX, int pixelY) {
@@ -283,7 +322,7 @@ void SimController::addPoint(float meterX, float meterY, int pixelX, int pixelY)
 
     // Table point
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
-    pointsList->addItem({std::to_string(meterX), std::to_string(meterY), "0"});
+    pointsList->addItem({std::to_string(meterX), std::to_string(meterY), ""});
 
     // Sprite point
     pointSprites.emplace_back();
@@ -302,12 +341,8 @@ void SimController::addPoint(float meterX, float meterY) {
 }
 
 void SimController::setPoint(int index, int pixelX, int pixelY, bool draw) {
-    if (index == 0) {
-        points.setPoint(index, 0, 0);
-    } else {
-        auto meters = metersRelativeToOrigin(pixelX, pixelY);
-        points.setPoint(index, meters.x, meters.y);
-    }
+    auto meters = metersRelativeToOrigin(pixelX, pixelY);
+    points.setPoint(index, meters.x, meters.y);
 
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
 
@@ -353,15 +388,15 @@ void SimController::removePoint(int index) {
 }
 
 sf::Vector2f SimController::pixelsRelativeToOrigin(float meterX, float meterY) {
-    auto& origin = pointSprites.at(0);
     sf::Vector2f pos{field.m2p(meterX), -field.m2p(meterY)};
-    pos += origin.getPosition();
+    pos += field.getOrigin();
+    pos.y += MENU_BAR_HEIGHT;
     return pos;
 }
 
 sf::Vector2f SimController::metersRelativeToOrigin(int pixelX, int pixelY) {
-    auto& origin = pointSprites.at(0).getPosition();
-    return {field.p2m(pixelX - origin.x), field.p2m(origin.y - pixelY)};
+    auto& origin = field.getOrigin();
+    return {field.p2m(pixelX - origin.x), field.p2m(origin.y + MENU_BAR_HEIGHT - pixelY)};
 }
 
 std::vector<Point> SimController::getPoints() {

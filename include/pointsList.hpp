@@ -9,10 +9,9 @@ class PointsList {
 public:
     PointsList();
 
-    int addPoint(double x, double y, double theta = 0.0);
+    int addPoint(double x, double y, double theta = NO_ANGLE);
     int addPoint(sf::String str);
-    void setPoint(int index, double x, double y);
-    void setPoint(int index, double x, double y, double theta);
+    void setPoint(int index, double x, double y, double theta = NO_ANGLE);
     bool setPoint(int index, sf::String str);
     void removePoint(int index);
     void swap(int index1, int index2);

@@ -6,7 +6,7 @@
 
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
-#include "json.hpp"
+#include <json.hpp>
 
 Field::Field() :
     texture{}, walls{}, polygons{} {
@@ -16,6 +16,10 @@ Field::Field() :
 
 const sf::Texture& Field::getTexture() const {
     return texture;
+}
+
+const sf::Vector2f& Field::getOrigin() const {
+    return origin;
 }
 
 const sf::Vector2i& Field::getSpawnPoint() const {
@@ -44,6 +48,9 @@ void Field::loadData() {
     file >> metadata;
 
     metadata["pixelsPerMeter"].get_to(pixelsPerMeter);
+    origin = sf::Vector2f{
+        metadata["origin"][0].get<float>(), metadata["origin"][1].get<float>()
+    };
     spawnPoint = sf::Vector2i{
         metadata["spawnPoint"][0].get<int>(), metadata["spawnPoint"][1].get<int>()
     };

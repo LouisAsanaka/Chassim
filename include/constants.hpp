@@ -7,5 +7,7 @@
 
 #define POINT_CIRCLE_RADIUS 12
 
-// Pixels per meter
-#define SCALE 90.0f
+// Meters to inches
+#define METERS2INCHES 39.3701
+// Inches to meters
+#define INCHES2METERS 0.0254

@@ -92,6 +92,9 @@
     <ClCompile Include="src\field.cpp">
       <Filter>src\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\javaProcess.cpp">
+      <Filter>src\Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\constants.hpp">
@@ -158,6 +161,12 @@
       <Filter>include\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\field.hpp">
+      <Filter>include\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\javaProcess.hpp">
+      <Filter>include\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sfLine.hpp">
       <Filter>include\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
