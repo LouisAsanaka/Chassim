@@ -160,5 +160,8 @@
     <ClInclude Include="include\field.hpp">
       <Filter>include\Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\sfLine.hpp">
+      <Filter>include\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

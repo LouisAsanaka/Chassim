@@ -8,6 +8,7 @@
 #include "structs.hpp"
 #include "pointsList.hpp"
 #include "pathgen.hpp"
+#include "sfLine.hpp"
 
 sf::Cursor defaultCursor;
 sf::Cursor grabCursor;
@@ -18,10 +19,12 @@ SimController::SimController(sf::RenderWindow& window, Field& field) :
     field{field},
     env{field},
     robot{env, field.getSpawnPoint().x, field.getSpawnPoint().y},
-    pathGen{robot.getTrackWidth(), 3.0, 4.0, 20.0} {
+    pathGen{robot.getTrackWidth(), 3.0, 4.0, 20.0},
+    splineLines{} {
     defaultCursor.loadFromSystem(sf::Cursor::Type::Arrow);
     grabCursor.loadFromSystem(sf::Cursor::Type::Hand);
 
+    splineLines.reserve(1000);
     createComponents();
 
     addPoint(0, 0, field.getSpawnPoint().x, field.getSpawnPoint().y + MENU_BAR_HEIGHT);
@@ -153,8 +156,8 @@ void SimController::draw() {
         window.draw(pointSprite);
     }
 
-    if (splinePoints != nullptr) {
-        window.draw(splinePoints, traj->length, sf::Points);
+    for (auto& splineLine : splineLines) {
+        splineLine.draw(window, sf::RenderStates::Default);
     }
     
     gui.draw();
@@ -222,7 +225,7 @@ void SimController::clearPoints() {
     for (int i = points.size() - 1; i > 0; --i) {
         removePoint(i);
     }
-    splinePoints = nullptr;
+    splineLines.clear();
 }
 
 void SimController::resetRobot() {
@@ -236,6 +239,9 @@ void SimController::resetRobot() {
 }
 
 void SimController::generateProfile() {
+    if (!splineLines.empty()) {
+        splineLines.clear();
+    }
     if (points.size() < 2) {
         return;
     }
@@ -249,18 +255,27 @@ void SimController::generateProfile() {
         delete traj->original;
         delete traj;
     }
-    if (splinePoints != nullptr) {
-        delete[] splinePoints;
-    }
+    
     // TODO: Generate the modified tank trajectory only when executing the profile
     traj = pathGen.generatePath(waypoints);
 
-    splinePoints = new sf::Vertex[traj->length];
-    auto origin = pointSprites.at(0).getPosition();
-    for (int i = 0; i < traj->length; i++) {
-        auto& p = *(traj->original + i);
-        splinePoints[i] = sf::Vertex(
-            origin + sf::Vector2f{field.m2p(p.x), -field.m2p(p.y)}, sf::Color::Yellow);
+    if (splineLines.size() < traj->length) {
+        splineLines.reserve(traj->length);
+    }
+    auto& origin = pointSprites.at(0).getPosition();
+    for (int i = 0; i < traj->length - 1; ++i) {
+        auto& point = *(traj->original + i);
+        auto& nextPoint = *(traj->original + i + 1);
+        splineLines.emplace_back(
+            origin + sf::Vector2f{
+                field.m2p(point.x),
+                -field.m2p(point.y)
+            },
+            origin + sf::Vector2f{
+                field.m2p(nextPoint.x),
+                -field.m2p(nextPoint.y)
+            }
+        );
     }
 }
 

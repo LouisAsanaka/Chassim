@@ -7,6 +7,7 @@
 #include "pointsList.hpp"
 #include "field.hpp"
 #include "environment.hpp"
+#include "sfLine.hpp"
 #include "pathgen.hpp"
 #include "robot.hpp"
 
@@ -52,7 +53,7 @@ private:
 
     PathGenerator pathGen;
     TrajectoryPair* traj = nullptr;
-    sf::Vertex* splinePoints = nullptr;
+    std::vector<sfLine> splineLines;
     int trajIndex = 0;
     bool isPathing = false;
 

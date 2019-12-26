@@ -51,6 +51,7 @@
     <ClInclude Include="include\pathgen.hpp" />
     <ClInclude Include="include\pointsList.hpp" />
     <ClInclude Include="include\robot.hpp" />
+    <ClInclude Include="include\sfLine.hpp" />
     <ClInclude Include="include\structs.hpp" />
     <ClInclude Include="include\simController.hpp" />
   </ItemGroup>
