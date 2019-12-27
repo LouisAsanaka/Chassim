@@ -2,6 +2,7 @@
 
 #include <TGUI/TGUI.hpp>
 #include <vector>
+#include <iostream>
 
 #include "constants.hpp"
 #include "field.hpp"
@@ -118,6 +119,16 @@ void SimController::update() {
     if (isPathing) {
         if (trajIndex < traj->length) {
             robot.setWheelSpeeds(traj->left[trajIndex].velocity, traj->right[trajIndex].velocity);
+            /*float angularSpeed = (
+                -normalizeAngle(traj->original[trajIndex + 1].heading) -
+                -normalizeAngle(traj->original[trajIndex].heading)
+                ) /
+                traj->original[trajIndex + 1].dt;
+            std::cout << "Angle: " << robot.getBody()->GetAngle() * 180 / b2_pi << " | Ang Vel: " << angularSpeed  << std::endl;
+            robot.setChassisSpeeds(
+                traj->original[trajIndex].velocity,
+                angularSpeed
+            );*/
             ++trajIndex;
         } else {
             isPathing = false;
@@ -286,7 +297,7 @@ void SimController::executeProfile() {
 
         const auto& origin = pointSprites.at(0).getPosition();
         robot.setPosition(
-            origin.x, origin.y - MENU_BAR_HEIGHT, -points.getPoint(0).theta * PI / 180
+            origin.x, origin.y - MENU_BAR_HEIGHT, -traj->original[0].heading
         );
         robot.stop();
     }

@@ -14,6 +14,8 @@
 extern sf::Cursor defaultCursor;
 extern sf::Cursor grabCursor;
 
+#define b2_twopi 6.28318530718f
+
 class SimController {
 public:
     SimController(sf::RenderWindow& window, Field& field);
@@ -41,6 +43,13 @@ public:
     sf::Vector2f pixelsRelativeToOrigin(float meterX, float meterY);
     sf::Vector2f metersRelativeToOrigin(int pixelX, int pixelY);
     std::vector<Point> getPoints();
+
+    static inline float normalizeAngle(float angle) {
+        float newAngle = angle;
+        while (newAngle <= -b2_pi) newAngle += b2_twopi;
+        while (newAngle > b2_pi) newAngle -= b2_twopi;
+        return newAngle;
+    }
 private:
     void createComponents();
 
