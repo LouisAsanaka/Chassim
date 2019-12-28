@@ -1,6 +1,7 @@
 #include "environment.hpp"
 
 #include <vector>
+#include <iostream>
 
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
@@ -33,8 +34,8 @@ b2World& Environment::getWorld() {
     return world;
 }
 
-void Environment::update() {
-    world.Step(1 / 60.0f, 8, 3);
+void Environment::update(float dt) {
+    world.Step(dt, 8, 3);
 }
 
 void Environment::render(sf::RenderWindow& window) {

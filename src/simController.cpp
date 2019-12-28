@@ -12,7 +12,6 @@
 #include "field.hpp"
 #include "structs.hpp"
 #include "pointsList.hpp"
-#include "pathgen.hpp"
 #include "sfLine.hpp"
 
 sf::Cursor defaultCursor;
@@ -25,18 +24,24 @@ SimController::SimController(sf::RenderWindow& window, Field& field) :
     env{field},
     robot{env, field.getSpawnPoint().x, field.getSpawnPoint().y},
     pathGen{[this](const char* bytes, size_t n) { return this->fillPath(bytes, n); }},
-    splineLines{} {
+    task{&SimController::executeProfileThread, this} {
     defaultCursor.loadFromSystem(sf::Cursor::Type::Arrow);
     grabCursor.loadFromSystem(sf::Cursor::Type::Hand);
 
     splineLines.reserve(1000);
+    trajectory.reserve(1000);
     createComponents();
 
     addPoint(0, 0, field.getOrigin().x, field.getOrigin().y + MENU_BAR_HEIGHT);
 }
 
+SimController::~SimController() {
+    destructed.store(true, std::memory_order_release);
+    task.join();
+}
+
 void SimController::handleEvent(sf::Event event) {
-    if (isPathing) {
+    if (isPathing.load(std::memory_order_acquire)) {
         gui.handleEvent(event);
         return;
     }
@@ -46,7 +51,7 @@ void SimController::handleEvent(sf::Event event) {
     case sf::Event::EventType::KeyReleased:
         switch (event.key.code) {
         case sf::Keyboard::Delete:
-            if (index != -1 && index != 0) {
+            if (index != -1 && index != 0 && gui.get<tgui::EditBox>("rowEditBox") == nullptr) {
                 removePoint(index);
                 generateProfile();
             }
@@ -110,37 +115,30 @@ void SimController::handleEvent(sf::Event event) {
     }
 }
 
-void SimController::update() {
-    env.update();
-
-    if (isPathing) {
-        /*if (trajIndex < traj->length) {
-            robot.setWheelSpeeds(traj->left[trajIndex].velocity, traj->right[trajIndex].velocity);
-            ++trajIndex;
-        } else {
-            isPathing = false;
-        }*/
-    } else {
+void SimController::update(float dt) {
+    std::lock_guard<std::mutex> lock{robotMutex};
+    if (!isPathing.load(std::memory_order_acquire)) {
         // Manual control
         float left = 0.0f;
         float right = 0.0f;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            left = 2.0f;
-            right = 2.0f;
+            left = 3.0f;
+            right = 3.0f;
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            left = -2.0f;
-            right = -2.0f;
+            left = -3.0f;
+            right = -3.0f;
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            left -= 2.0f;
-            right += 2.0f;
+            left -= 3.0f;
+            right += 3.0f;
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-            left += 2.0f;
-            right -= 2.0f;
+            left += 3.0f;
+            right -= 3.0f;
         }
         robot.setWheelSpeeds(left, right);
     }
-    robot.update();
+    robot.update(dt);
+    env.update(dt);
 }
 
 void SimController::draw() {
@@ -148,14 +146,16 @@ void SimController::draw() {
     window.clear(sf::Color::White);
 
     env.render(window);
+
+    robotMutex.lock();
     robot.render(window);
+    robotMutex.unlock();
 
     for (auto& pointSprite: pointSprites) {
         window.draw(pointSprite);
     }
 
     if (!splineLines.empty()) {
-        //window.draw(splinePoints.data(), splinePoints.size(), sf::Points);
         for (auto& splineLine : splineLines) {
             splineLine.draw(window, sf::RenderStates::Default);
         }
@@ -180,7 +180,7 @@ void SimController::itemSelected(int index) {
 }
 
 void SimController::editRow(int index) {
-    if (isPathing) {
+    if (isPathing.load(std::memory_order_acquire)) {
         return;
     }
 
@@ -227,18 +227,22 @@ void SimController::clearPoints() {
         removePoint(i);
     }
     splineLines.clear();
+    trajectory.clear();
     addPoint(0, 0, field.getOrigin().x, field.getOrigin().y + MENU_BAR_HEIGHT);
 
-    std::lock_guard<std::mutex> lock(bufferStatusMutex);
+    while (isBuffering.load(std::memory_order_acquire)) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
     bufferedResponse = "";
 }
 
 void SimController::resetRobot() {
-    isPathing = false;
-
-    auto& origin = pointSprites.at(0).getPosition();
-    robot.setPosition(
-        origin.x, origin.y - MENU_BAR_HEIGHT, -points.getPoint(0).theta * PI / 180
+    isPathing.store(false, std::memory_order_release);
+    
+    std::lock_guard<std::mutex> lock{robotMutex};
+    auto& origin = field.getSpawnPoint();
+    robot.setPixelPosition(
+        origin.x, origin.y
     );
     robot.stop();
 }
@@ -247,20 +251,23 @@ void SimController::generateProfile() {
     if (!splineLines.empty()) {
         splineLines.clear();
     }
+    if (!trajectory.empty()) {
+        trajectory.clear();
+    }
     if (points.size() < 2) {
         return;
     }
-    /*if (traj != nullptr) {
-        delete traj->left;
-        delete traj->right;
-        delete traj->original;
-        delete traj;
-    }*/
-    std::lock_guard<std::mutex> lock(bufferStatusMutex);
+    while (isBuffering.load(std::memory_order_acquire)) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
     pathGen.send(points.getPoints(), 10, 20);
 }
 
 void SimController::fillPath(const char* bytes, size_t n) {
+    if (bufferedResponse.empty()) {
+        isBuffering.store(true, std::memory_order_release);
+    }
+
     // Comes from a buffer, so look for the end of buffer
     auto data = std::string(bytes, n);
     bufferedResponse += data;
@@ -269,11 +276,12 @@ void SimController::fillPath(const char* bytes, size_t n) {
     if (data[n - 2] == '\r' && data[n - 1] == '\n') {
         formPath();
         bufferedResponse = "";
+        isBuffering.store(false, std::memory_order_release);
     }
 }
 
 void SimController::formPath() {
-    std::lock_guard<std::mutex> lock(bufferStatusMutex);
+    std::cout << bufferedResponse << std::endl;
 
     auto fullData = nlohmann::json::parse(bufferedResponse);
     auto& pathPoints = fullData["path"];
@@ -282,10 +290,20 @@ void SimController::formPath() {
     if (splineLines.size() < size) {
         splineLines.reserve(size);
     }
-
+    if (trajectory.size() < size) {
+        trajectory.reserve(size);
+    }
     auto& origin = field.getOrigin();
-    for (int i = 0; i < size - 1; ++i) {
+    for (int i = 0; i < size; ++i) {
         auto& point = pathPoints[i];
+        trajectory.emplace_back(
+            point["velocity"].get<float>() * INPP100MS2MPS,
+            point["angle"].get<float>() * b2_pi / 180,
+            point["time"].get<float>() * HUNDREDMS2S
+        );
+        if (i == size - 1) {
+            break;
+        }
         auto& nextPoint = pathPoints[i + 1];
         splineLines.emplace_back(
             origin + sf::Vector2f{
@@ -300,20 +318,49 @@ void SimController::formPath() {
     }
 }
 
+void SimController::runProfile() {
+    isPathing.store(true, std::memory_order_release);
+}
+
+void SimController::executeProfileThread() {
+    while (!destructed.load(std::memory_order_acquire)) {
+        if (isPathing.load(std::memory_order_acquire)) {
+            std::cout << "Running profile" << std::endl;
+            executeProfile();
+            std::cout << "Finished profile" << std::endl;
+            isPathing.store(false, std::memory_order_release);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+}
+
 void SimController::executeProfile() {
-    // TODO: Make the robot follow the path
-    return;
+    int pathLength = trajectory.size();
+    auto& startingPos = points.getPoint(0);
+    robotMutex.lock();
+    robot.setMeterPosition(
+        startingPos.x,
+        startingPos.y,
+        trajectory[0].angle
+    );
+    robotMutex.unlock();
+    for (int i = 0; i < pathLength - 1 && isPathing.load(std::memory_order_acquire); ++i) {
+        float dt = trajectory[i + 1].dt;
 
-    /*if (!isPathing && traj != nullptr) {
-        isPathing = true;
-        trajIndex = 0;
+        float linearSpeed = trajectory[i].velocity;
+        float angularSpeed = (trajectory[i + 1].angle - trajectory[i].angle) / dt;
 
-        const auto& origin = pointSprites.at(0).getPosition();
-        robot.setPosition(
-            origin.x, origin.y - MENU_BAR_HEIGHT, -points.getPoint(0).theta * PI / 180
-        );
-        robot.stop();
-    }*/
+        //std::cout << "Robot Angle: " << robot.getBody()->GetAngle() * 180 / b2_pi << std::endl;
+        //std::cout << "Target Angle: " << trajectory[i + 1].angle * 180 / b2_pi << std::endl;
+        std::cout << dt << std::endl;
+
+        robotMutex.lock();
+        robot.setChassisSpeeds(linearSpeed, angularSpeed);
+        //robot.update(dt);
+        robotMutex.unlock();
+
+        std::this_thread::sleep_until(std::chrono::steady_clock::now() + std::chrono::duration<float>(dt));
+    }
 }
 
 void SimController::addPoint(float meterX, float meterY, int pixelX, int pixelY) {
@@ -342,7 +389,7 @@ void SimController::addPoint(float meterX, float meterY) {
 
 void SimController::setPoint(int index, int pixelX, int pixelY, bool draw) {
     auto meters = metersRelativeToOrigin(pixelX, pixelY);
-    points.setPoint(index, meters.x, meters.y);
+    points.setPoint(index, meters.x, meters.y, points.getPoint(index).theta);
 
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
 
@@ -417,7 +464,7 @@ void SimController::createComponents() {
     menuBar->addMenuItem("Generate Profile");
     menuBar->connectMenuItem("Pathing", "Generate Profile", &SimController::generateProfile, this);
     menuBar->addMenuItem("Execute Profile");
-    menuBar->connectMenuItem("Pathing", "Execute Profile", &SimController::executeProfile, this);
+    menuBar->connectMenuItem("Pathing", "Execute Profile", &SimController::runProfile, this);
     gui.add(menuBar, "menuBar");
 
     // Make the table of points

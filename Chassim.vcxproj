@@ -26,7 +26,6 @@
     <ClCompile Include="src\pathfinder\modifiers\tank.c" />
     <ClCompile Include="src\pathfinder\spline.c" />
     <ClCompile Include="src\pathfinder\trajectory.c" />
-    <ClCompile Include="src\pathgen.cpp" />
     <ClCompile Include="src\pointsList.cpp" />
     <ClCompile Include="src\robot.cpp" />
     <ClCompile Include="src\simController.cpp" />
@@ -50,7 +49,6 @@
     <ClInclude Include="include\pathfinder\spline.h" />
     <ClInclude Include="include\pathfinder\structs.h" />
     <ClInclude Include="include\pathfinder\trajectory.h" />
-    <ClInclude Include="include\pathgen.hpp" />
     <ClInclude Include="include\pointsList.hpp" />
     <ClInclude Include="include\robot.hpp" />
     <ClInclude Include="include\sfLine.hpp" />

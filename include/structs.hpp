@@ -14,3 +14,14 @@ struct Point {
 
     }
 };
+
+struct TrajectoryPoint {
+    float velocity;
+    float angle;
+    float dt;
+
+    TrajectoryPoint(float velocity, float angle, float dt) : 
+        velocity{velocity}, angle{angle}, dt{dt} {
+
+    }
+};

@@ -27,9 +27,11 @@ public:
     ChassisSpeeds getChassisSpeeds();
     WheelSpeeds getWheelSpeeds();
 
-    void setPosition(int x, int y, float theta = 0.0f);
+    void setMeterPosition(float x, float y, float theta = 0.0f);
+    void setPixelPosition(int x, int y, float theta = 0.0f);
+    void setAngle(float theta);
 
-    void update();
+    void update(float dt);
     void render(sf::RenderWindow& window);
 private:
     void createRobot(int x, int y);
@@ -42,6 +44,8 @@ private:
     b2Body* body;
     Environment& env;
     Field& field;
+
+    sf::Vector2f origin;
 
     float linearSpeed = 0.0f;
     float angularSpeed = 0.0f;

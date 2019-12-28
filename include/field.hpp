@@ -31,6 +31,7 @@ private:
     void loadData();
 
     sf::Texture texture;
+    sf::Vector2f physicalSize;
     int pixelsPerMeter;
     sf::Vector2f origin;
     sf::Vector2i spawnPoint;

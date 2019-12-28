@@ -2,6 +2,7 @@
 
 #include <TGUI/TGUI.hpp>
 #include <vector>
+#include <atomic>
 #include <thread>
 
 #include "structs.hpp"
@@ -18,9 +19,10 @@ extern sf::Cursor grabCursor;
 class SimController {
 public:
     SimController(sf::RenderWindow& window, Field& field);
+    ~SimController();
 
     void handleEvent(sf::Event event);
-    void update();
+    void update(float dt);
     void draw();
 
     void itemSelected(int index);
@@ -33,6 +35,9 @@ public:
     void generateProfile();
     void fillPath(const char* bytes, size_t n);
     void formPath();
+    void runProfile();
+    
+    void executeProfileThread();
     void executeProfile();
 
     void addPoint(float meterX, float meterY, int pixelX, int pixelY);
@@ -56,13 +61,15 @@ private:
 
     JavaProcess pathGen;
     std::string bufferedResponse = "";
-    bool isFilling = false;
-    std::mutex bufferStatusMutex;
-    //TrajectoryPair* traj = nullptr;
-    //std::vector<sf::Vertex> splinePoints;
-    std::vector<sfLine> splineLines;
-    int trajIndex = 0;
-    bool isPathing = false;
+    std::atomic_bool isBuffering{false};
+    std::vector<sfLine> splineLines{};
+    std::vector<TrajectoryPoint> trajectory{};
+    
+    std::thread task;
+    std::atomic_bool isPathing{false};
+    std::mutex robotMutex;
+
+    std::atomic_bool destructed{false};
 
     PointsList points;
     std::vector<sf::CircleShape> pointSprites;

@@ -1,6 +1,7 @@
 #include "robot.hpp"
 
 #include <fstream>
+#include <iostream>
 
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
@@ -12,6 +13,7 @@
 Robot::Robot(Environment& env, int x, int y) :
     env{env},
     field{env.getField()},
+    origin{env.getField().getOrigin()},
     texture{},
     sprite{} {
     texture.loadFromFile(ROBOT_IMAGE_NAME);
@@ -56,7 +58,7 @@ void Robot::setChassisSpeeds(float linear, float angular) {
 
 void Robot::setWheelSpeeds(float left, float right) {
     linearSpeed = (left + right) / 2;
-    angularSpeed = (left - right) / trackWidth;
+    angularSpeed = (right - left) / trackWidth;
 }
 
 void Robot::stop() {
@@ -73,17 +75,28 @@ WheelSpeeds Robot::getWheelSpeeds() {
         linearSpeed + (trackWidth / 2) * angularSpeed);
 }
 
-void Robot::setPosition(int x, int y, float theta) {
-    body->SetTransform(b2Vec2{field.p2m(x), field.p2m(y)}, theta);
+void Robot::setMeterPosition(float x, float y, float theta) {
+    body->SetTransform(b2Vec2{x, y}, theta);
 }
 
-void Robot::update() {
+void Robot::setPixelPosition(int x, int y, float theta) {
+    body->SetTransform(b2Vec2{
+        field.p2m(x - origin.x), field.p2m(origin.y - y)
+    }, theta);
+}
+
+void Robot::setAngle(float theta) {
+    body->SetTransform(body->GetPosition(), theta);
+}
+
+void Robot::update(float dt) {
     // Apply impulses depending on the chassis speed 
     float currentAngle = body->GetAngle();
 
     // Target velocity
     const b2Vec2 targetV = b2Vec2{
-        linearSpeed * std::cos(currentAngle), linearSpeed * std::sin(currentAngle)};
+        linearSpeed * std::cos(currentAngle), linearSpeed * std::sin(currentAngle)
+    };
     const b2Vec2& currentV = body->GetLinearVelocity();
     b2Vec2 dv = targetV - currentV;
 
@@ -97,14 +110,19 @@ void Robot::update() {
 }
 
 void Robot::render(sf::RenderWindow& window) {
-    sprite.setPosition(field.m2p(body->GetPosition().x), field.m2p(body->GetPosition().y) + MENU_BAR_HEIGHT);
-    sprite.setRotation(body->GetAngle() * 180 / b2_pi);
+    sprite.setPosition(
+        origin.x + field.m2p(body->GetPosition().x), 
+        origin.y + MENU_BAR_HEIGHT - field.m2p(body->GetPosition().y)
+    );
+    // SFML +angle = clockwise, Box2D +angle = counter-clockwise
+    sprite.setRotation(-body->GetAngle() * 180 / b2_pi);
     window.draw(sprite);
 }
 
 void Robot::createRobot(int x, int y) {
     b2BodyDef bodyDef;
-    bodyDef.position = b2Vec2(field.p2m(x), field.p2m(y));
+    bodyDef.position = b2Vec2(field.p2m(x - origin.x), field.p2m(origin.y - y));
+    
     bodyDef.type = b2_dynamicBody;
     body = env.getWorld().CreateBody(&bodyDef);
 

@@ -13,7 +13,7 @@ public:
 
     Field& getField();
     b2World& getWorld();
-    void update();
+    void update(float dt);
     void render(sf::RenderWindow& window);
 private:
     void createWall(const std::vector<b2Vec2>& vec);

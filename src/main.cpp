@@ -1,6 +1,8 @@
 #include "main.hpp"
 
 #include <SFML/Graphics.hpp>
+#include <algorithm>
+#include <iostream>
 
 #include "simController.hpp"
 #include "constants.hpp"
@@ -17,7 +19,7 @@ int main() {
         sf::VideoMode(windowSize.x, windowSize.y, 32),
         "Chassim", sf::Style::Titlebar | sf::Style::Close
     };
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(FRAMERATE);
 
     const int CENTER_X = sf::VideoMode::getDesktopMode().width / 2 - windowSize.x / 2;
     const int CENTER_Y = sf::VideoMode::getDesktopMode().height / 2 - windowSize.y / 2;
@@ -25,6 +27,7 @@ int main() {
 
     SimController controller{window, field};
 
+    sf::Clock clock;
     while (window.isOpen()) {
         // Process events
         sf::Event event;
@@ -34,8 +37,14 @@ int main() {
             }
             controller.handleEvent(event);
         }
-
-        controller.update();
+        // Ref: https://gafferongames.com/post/fix_your_timestep/
+        float frameTime = clock.restart().asSeconds();
+        int i = 0;
+        while (frameTime > 0.0f) {
+            float deltaTime = std::min(frameTime, IDEAL_DT);
+            controller.update(deltaTime);
+            frameTime -= deltaTime;
+        }
         controller.draw();
         window.display();
     }
