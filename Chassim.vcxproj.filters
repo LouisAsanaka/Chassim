@@ -15,27 +15,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="include\Header Files\pathfinder">
-      <UniqueIdentifier>{fba8a94d-965b-49bb-a341-83176003b2e9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\Header Files\pathfinder\followers">
-      <UniqueIdentifier>{3c25de48-0063-4ba4-a60f-e2b0d44ed3c9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\Header Files\pathfinder\modifiers">
-      <UniqueIdentifier>{5c0f151c-226b-4533-a21d-b075d0a200eb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Source Files\pathfinder">
-      <UniqueIdentifier>{57be39bf-b525-464a-87ab-f10b15e920c1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Source Files\pathfinder\fit">
-      <UniqueIdentifier>{bed46f0c-44bc-4162-8c2e-d850da9e9ed1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Source Files\pathfinder\followers">
-      <UniqueIdentifier>{bfe12cc5-d39b-4de1-af29-8ac18e147805}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Source Files\pathfinder\modifiers">
-      <UniqueIdentifier>{b88c0c4a-371e-46c6-bde5-fa8afc66919b}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\environment.cpp">
@@ -46,39 +25,6 @@
     </ClCompile>
     <ClCompile Include="src\robot.cpp">
       <Filter>src\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pathfinder\error.c">
-      <Filter>src\Source Files\pathfinder</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pathfinder\generator.c">
-      <Filter>src\Source Files\pathfinder</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pathfinder\io.c">
-      <Filter>src\Source Files\pathfinder</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pathfinder\mathutil.c">
-      <Filter>src\Source Files\pathfinder</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pathfinder\spline.c">
-      <Filter>src\Source Files\pathfinder</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pathfinder\trajectory.c">
-      <Filter>src\Source Files\pathfinder</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pathfinder\modifiers\swerve.c">
-      <Filter>src\Source Files\pathfinder\modifiers</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pathfinder\modifiers\tank.c">
-      <Filter>src\Source Files\pathfinder\modifiers</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pathfinder\followers\distance.c">
-      <Filter>src\Source Files\pathfinder\followers</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pathfinder\followers\encoder.c">
-      <Filter>src\Source Files\pathfinder\followers</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pathfinder\fit\hermite.c">
-      <Filter>src\Source Files\pathfinder\fit</Filter>
     </ClCompile>
     <ClCompile Include="src\pointsList.cpp">
       <Filter>src\Source Files</Filter>
@@ -102,45 +48,6 @@
     </ClInclude>
     <ClInclude Include="include\robot.hpp">
       <Filter>include\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\error.h">
-      <Filter>include\Header Files\pathfinder</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\fit.h">
-      <Filter>include\Header Files\pathfinder</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\io.h">
-      <Filter>include\Header Files\pathfinder</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\lib.h">
-      <Filter>include\Header Files\pathfinder</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\mathutil.h">
-      <Filter>include\Header Files\pathfinder</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\pathfinder.h">
-      <Filter>include\Header Files\pathfinder</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\spline.h">
-      <Filter>include\Header Files\pathfinder</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\structs.h">
-      <Filter>include\Header Files\pathfinder</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\trajectory.h">
-      <Filter>include\Header Files\pathfinder</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\followers\distance.h">
-      <Filter>include\Header Files\pathfinder\followers</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\followers\encoder.h">
-      <Filter>include\Header Files\pathfinder\followers</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\modifiers\swerve.h">
-      <Filter>include\Header Files\pathfinder\modifiers</Filter>
-    </ClInclude>
-    <ClInclude Include="include\pathfinder\modifiers\tank.h">
-      <Filter>include\Header Files\pathfinder\modifiers</Filter>
     </ClInclude>
     <ClInclude Include="include\main.hpp">
       <Filter>include\Header Files</Filter>
