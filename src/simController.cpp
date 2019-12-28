@@ -42,7 +42,7 @@ void SimController::handleEvent(sf::Event event) {
     case sf::Event::EventType::KeyReleased:
         switch (event.key.code) {
         case sf::Keyboard::Delete:
-            if (index != -1 && index != 0) {
+            if (index != -1 && index != 0 && gui.get<tgui::EditBox>("rowEditBox") == nullptr) {
                 removePoint(index);
                 generateProfile();
             }
