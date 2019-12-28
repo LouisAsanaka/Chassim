@@ -16,6 +16,10 @@ PathGenerator::PathGenerator(float trackwidth, double maxVel, double maxAccel, d
 
 }
 
+/**
+ * Original author: Ryan Benasutti, WPI
+ * Modified from OkapiLib
+ */
 TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints) {
     if (waypoints.size() == 0) {
         // No point in generating a path
