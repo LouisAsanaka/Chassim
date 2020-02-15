@@ -21,14 +21,13 @@ Robot::Robot(Environment& env, int x, int y) :
     float xSize = getPixelSize().x;
     float ySize = getPixelSize().y;
 
-    physicalSize = sf::Vector2f{field.p2m(xSize), field.p2m(ySize)};
+    physicalSize = sf::Vector2f{field.p2mX(xSize), field.p2mY(ySize)};
 
     std::ifstream file{ROBOT_METADATA_NAME};
     nlohmann::json metadata;
     file >> metadata;
 
-    metadata["trackWidthPixel"].get_to(trackWidth);
-    trackWidth = field.p2m(trackWidth);
+    metadata["trackWidthMeter"].get_to(trackWidth);
 
     sprite.setTexture(texture);
     sprite.setOrigin(xSize / 2, ySize / 2);
@@ -81,7 +80,7 @@ void Robot::setMeterPosition(float x, float y, float theta) {
 
 void Robot::setPixelPosition(int x, int y, float theta) {
     body->SetTransform(b2Vec2{
-        field.p2m(x - origin.x), field.p2m(origin.y - y)
+        field.p2mX(x - origin.x), field.p2mY(origin.y - y)
     }, theta);
 }
 
@@ -111,8 +110,8 @@ void Robot::update(float dt) {
 
 void Robot::render(sf::RenderWindow& window) {
     sprite.setPosition(
-        origin.x + field.m2p(body->GetPosition().x), 
-        origin.y + MENU_BAR_HEIGHT - field.m2p(body->GetPosition().y)
+        origin.x + field.m2pX(body->GetPosition().x), 
+        origin.y + MENU_BAR_HEIGHT - field.m2pY(body->GetPosition().y)
     );
     // SFML +angle = clockwise, Box2D +angle = counter-clockwise
     sprite.setRotation(-body->GetAngle() * 180 / b2_pi);
@@ -121,7 +120,7 @@ void Robot::render(sf::RenderWindow& window) {
 
 void Robot::createRobot(int x, int y) {
     b2BodyDef bodyDef;
-    bodyDef.position = b2Vec2(field.p2m(x - origin.x), field.p2m(origin.y - y));
+    bodyDef.position = b2Vec2(field.p2mX(x - origin.x), field.p2mY(origin.y - y));
     
     bodyDef.type = b2_dynamicBody;
     body = env.getWorld().CreateBody(&bodyDef);

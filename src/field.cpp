@@ -13,8 +13,8 @@ Field::Field() :
     loadImage();
     loadData();
 
-    physicalSize.x = p2m(texture.getSize().x);
-    physicalSize.y = p2m(texture.getSize().y);
+    physicalSize.x = p2mX(texture.getSize().x);
+    physicalSize.y = p2mY(texture.getSize().y);
 }
 
 const sf::Texture& Field::getTexture() const {
@@ -27,10 +27,6 @@ const sf::Vector2f& Field::getOrigin() const {
 
 const sf::Vector2i& Field::getSpawnPoint() const {
     return spawnPoint;
-}
-
-const int Field::getPixelsPerMeter() const {
-    return pixelsPerMeter;
 }
 
 const std::vector<std::vector<b2Vec2>>& Field::getWalls() const {
@@ -50,7 +46,14 @@ void Field::loadData() {
     nlohmann::json metadata;
     file >> metadata;
 
-    metadata["pixelsPerMeter"].get_to(pixelsPerMeter);
+    metadata["fieldPixelWidth"].get_to(fieldPixelWidth);
+    metadata["fieldMeterWidth"].get_to(fieldMeterWidth);
+    fieldXPixelPerMeter = fieldPixelWidth / fieldMeterWidth;
+
+    metadata["fieldPixelHeight"].get_to(fieldPixelHeight);
+    metadata["fieldMeterHeight"].get_to(fieldMeterHeight);
+    fieldYPixelPerMeter = fieldPixelHeight / fieldMeterHeight;
+
     origin = sf::Vector2f{
         metadata["origin"][0].get<float>(), metadata["origin"][1].get<float>()
     };
@@ -63,12 +66,12 @@ void Field::loadData() {
         walls.emplace_back(
             std::initializer_list<b2Vec2>{
                 b2Vec2{
-                    p2m(wallData[0][0].get<float>() - origin.x),
-                    p2m(origin.y - wallData[0][1].get<float>())
+                    p2mX(wallData[0][0].get<float>() - origin.x),
+                    p2mY(origin.y - wallData[0][1].get<float>())
                 },
                 b2Vec2{
-                    p2m(wallData[1][0].get<float>() - origin.x),
-                    p2m(origin.y - wallData[1][1].get<float>())
+                    p2mX(wallData[1][0].get<float>() - origin.x),
+                    p2mY(origin.y - wallData[1][1].get<float>())
                 },
             }
         );
@@ -79,8 +82,8 @@ void Field::loadData() {
         std::vector<b2Vec2> verticies;
         for (auto& polyCoords : polyData) {
             verticies.emplace_back(
-                p2m(polyCoords[0].get<float>() - origin.x), 
-                p2m(origin.y - polyCoords[1].get<float>())
+                p2mX(polyCoords[0].get<float>() - origin.x), 
+                p2mY(origin.y - polyCoords[1].get<float>())
             );
         }
         polygons.push_back(std::move(verticies));
