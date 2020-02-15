@@ -19,14 +19,13 @@ Robot::Robot(Environment& env, int x, int y) :
     float xSize = getPixelSize().x;
     float ySize = getPixelSize().y;
 
-    physicalSize = sf::Vector2f{field.p2m(xSize), field.p2m(ySize)};
+    physicalSize = sf::Vector2f{field.p2mX(xSize), field.p2mY(ySize)};
 
     std::ifstream file{ROBOT_METADATA_NAME};
     nlohmann::json metadata;
     file >> metadata;
 
-    metadata["trackWidthPixel"].get_to(trackWidth);
-    trackWidth = field.p2m(trackWidth);
+    metadata["trackWidthMeter"].get_to(trackWidth);
 
     sprite.setTexture(texture);
     sprite.setOrigin(xSize / 2, ySize / 2);
@@ -74,7 +73,7 @@ WheelSpeeds Robot::getWheelSpeeds() {
 }
 
 void Robot::setPosition(int x, int y, float theta) {
-    body->SetTransform(b2Vec2{field.p2m(x), field.p2m(y)}, theta);
+    body->SetTransform(b2Vec2{field.p2mX(x), field.p2mY(y)}, theta);
 }
 
 void Robot::update() {
@@ -97,14 +96,14 @@ void Robot::update() {
 }
 
 void Robot::render(sf::RenderWindow& window) {
-    sprite.setPosition(field.m2p(body->GetPosition().x), field.m2p(body->GetPosition().y) + MENU_BAR_HEIGHT);
+    sprite.setPosition(field.m2pX(body->GetPosition().x), field.m2pY(body->GetPosition().y) + MENU_BAR_HEIGHT);
     sprite.setRotation(body->GetAngle() * 180 / b2_pi);
     window.draw(sprite);
 }
 
 void Robot::createRobot(int x, int y) {
     b2BodyDef bodyDef;
-    bodyDef.position = b2Vec2(field.p2m(x), field.p2m(y));
+    bodyDef.position = b2Vec2(field.p2mX(x), field.p2mY(y));
     bodyDef.type = b2_dynamicBody;
     body = env.getWorld().CreateBody(&bodyDef);
 

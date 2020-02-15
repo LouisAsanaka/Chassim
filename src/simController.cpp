@@ -279,12 +279,12 @@ void SimController::generateProfile() {
         auto& nextPoint = *(traj->original + i + 1);
         splineLines.emplace_back(
             origin + sf::Vector2f{
-                field.m2p(point.x),
-                -field.m2p(point.y)
+                field.m2pX(point.x),
+                -field.m2pY(point.y)
             },
             origin + sf::Vector2f{
-                field.m2p(nextPoint.x),
-                -field.m2p(nextPoint.y)
+                field.m2pX(nextPoint.x),
+                -field.m2pY(nextPoint.y)
             }
         );
     }
@@ -380,14 +380,14 @@ void SimController::removePoint(int index) {
 
 sf::Vector2f SimController::pixelsRelativeToOrigin(float meterX, float meterY) {
     auto& origin = pointSprites.at(0);
-    sf::Vector2f pos{field.m2p(meterX), -field.m2p(meterY)};
+    sf::Vector2f pos{field.m2pX(meterX), -field.m2pY(meterY)};
     pos += origin.getPosition();
     return pos;
 }
 
 sf::Vector2f SimController::metersRelativeToOrigin(int pixelX, int pixelY) {
     auto& origin = pointSprites.at(0).getPosition();
-    return {field.p2m(pixelX - origin.x), field.p2m(origin.y - pixelY)};
+    return {field.p2mX(pixelX - origin.x), field.p2mY(origin.y - pixelY)};
 }
 
 std::vector<Point> SimController::getPoints() {
