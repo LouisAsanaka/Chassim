@@ -480,8 +480,8 @@ void SimController::createComponents() {
     pointsList->connect("DoubleClicked", &SimController::editRow, this);
 
     // Create the columns
-    pointsList->addColumn("X (m)", POINTS_LIST_COLUMN_WIDTH);
-    pointsList->addColumn("Y (m)", POINTS_LIST_COLUMN_WIDTH);
+    pointsList->addColumn("X (in)", POINTS_LIST_COLUMN_WIDTH);
+    pointsList->addColumn("Y (in)", POINTS_LIST_COLUMN_WIDTH);
     // https://www.sfml-dev.org/tutorials/2.5/graphics-text.php
     pointsList->addColumn(L"\u03B8 (\u00B0)", POINTS_LIST_COLUMN_WIDTH);
 
