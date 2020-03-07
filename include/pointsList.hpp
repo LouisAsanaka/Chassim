@@ -20,6 +20,7 @@ public:
     int size();
 
     static std::vector<double> parsePointStr(sf::String str, char delim);
+    // Returns measurements in inches
     static std::vector<sf::String> toStrVector(const Point& point);
 private:
     std::vector<Point> points;

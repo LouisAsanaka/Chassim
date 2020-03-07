@@ -5,6 +5,7 @@
 #include <numeric>
 #include <sstream>
 
+#include "constants.hpp"
 #include "structs.hpp"
 
 PointsList::PointsList() {
@@ -38,9 +39,9 @@ void PointsList::setPoint(int index, double x, double y, double theta) {
 bool PointsList::setPoint(int index, sf::String str) {
     auto data = parsePointStr(str, ',');
     if (data.size() == 2) {
-        setPoint(index, data[0], data[1]);
+        setPoint(index, data[0] * INCHES2METERS, data[1] * INCHES2METERS);
     } else if (data.size() == 3) {
-        setPoint(index, data[0], data[1], data[2]);
+        setPoint(index, data[0] * INCHES2METERS, data[1] * INCHES2METERS, data[2]);
     } else {
         return false;
     }    
@@ -86,8 +87,8 @@ std::vector<double> PointsList::parsePointStr(sf::String str, char delim) {
 
 std::vector<sf::String> PointsList::toStrVector(const Point& point) {
     std::vector<sf::String> v;
-    v.emplace_back(std::to_string(point.x));
-    v.emplace_back(std::to_string(point.y));
+    v.emplace_back(std::to_string(point.x * METERS2INCHES));
+    v.emplace_back(std::to_string(point.y * METERS2INCHES));
     if (std::isnan(point.theta)) {
         v.emplace_back();
     } else {
