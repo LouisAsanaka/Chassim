@@ -90,19 +90,19 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-system.lib;tgui.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\libraries\Box2D-5ae818e\lib;D:\libraries\SFML-2.5.1\lib;D:\libraries\TGUI-0.8.6\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;$(SolutionDir)lib\Box2D\lib;$(SolutionDir)lib\SFML\lib;$(SolutionDir)lib\TGUI\lib</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;D:\libraries\Box2D-5ae818e\include;D:\libraries\SFML-2.5.1\include;D:\libraries\TGUI-0.8.6\include;D:\libraries\json-3.7.3\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)lib\Box2D\include;$(SolutionDir)lib\SFML\include;$(SolutionDir)lib\TGUI\include;$(SolutionDir)lib\json\include</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
       <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;tgui-d.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\libraries\Box2D-5ae818e\lib;D:\libraries\SFML-2.5.1\lib;D:\libraries\TGUI-0.8.6\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;$(SolutionDir)lib\Box2D\lib;$(SolutionDir)lib\SFML\lib;$(SolutionDir)lib\TGUI\lib</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;D:\libraries\Box2D-5ae818e\include;D:\libraries\SFML-2.5.1\include;D:\libraries\TGUI-0.8.6\include;D:\libraries\json-3.7.3\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)lib\Box2D\include;$(SolutionDir)lib\SFML\include;$(SolutionDir)lib\TGUI\include;$(SolutionDir)lib\json\include</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
