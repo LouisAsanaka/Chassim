@@ -13,3 +13,10 @@
 - Execute .\gradlew installDist to build & install the Java components
 - Copy the 'include' & 'lib' directories of each dependency (create a include folder for json.hpp) to the respective folders in 'lib'
 - Open the solution file in Visual Studio to build the main program
+
+## Usage
+- Most things should be self-explanatory
+- Normal cartesian coordinate system (+x to the right, -y downwards)
+- +angle is counter-clockwise
+- Keyboard Shortcuts
+	- Ctrl-Shift-C to copy points into clipboard
