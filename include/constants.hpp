@@ -8,7 +8,7 @@
 #define POINT_CIRCLE_RADIUS 12
 
 // Max frame rate
-#define FRAMERATE 120.0f
+#define FRAMERATE 60.0f
 #define IDEAL_DT (1 / FRAMERATE)
 
 // Meters to inches

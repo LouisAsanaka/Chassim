@@ -299,7 +299,7 @@ void SimController::generateProfile() {
     while (isBuffering.load(std::memory_order_acquire)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    pathGen.send(points.getPoints(), 10, 20);
+    pathGen.send(points.getPoints(), 8, 8);
 }
 
 void SimController::fillPath(const char* bytes, size_t n) {
@@ -383,22 +383,33 @@ void SimController::executeProfile() {
         trajectory[0].angle
     );
     robotMutex.unlock();
+    
     for (int i = 0; i < pathLength - 1 && isPathing.load(std::memory_order_acquire); ++i) {
         float dt = trajectory[i + 1].dt;
-
         float linearSpeed = trajectory[i].velocity;
         float angularSpeed = (trajectory[i + 1].angle - trajectory[i].angle) / dt;
 
         //std::cout << "Robot Angle: " << robot.getBody()->GetAngle() * 180 / b2_pi << std::endl;
         //std::cout << "Target Angle: " << trajectory[i + 1].angle * 180 / b2_pi << std::endl;
-        std::cout << dt << std::endl;
+        //std::cout << linearSpeed << " | " << trajectory[i].velocity << std::endl;
 
         robotMutex.lock();
         robot.setChassisSpeeds(linearSpeed, angularSpeed);
         //robot.update(dt);
         robotMutex.unlock();
 
-        std::this_thread::sleep_until(std::chrono::steady_clock::now() + std::chrono::duration<float>(dt));
+        // sleep_until isn't precise enough, so gotta CPU hog cycles now
+        // TODO: Find a better way of doing this
+        auto start = std::chrono::steady_clock::now();
+        while (true) {
+            auto now = std::chrono::steady_clock::now();
+            auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - start);
+            if (elapsed.count() * 1e-6 > dt) {
+                break;
+            }
+            //std::this_thread::sleep_for(std::chrono::duration<float>(dt / 10));
+        }
+        //std::this_thread::sleep_until(std::chrono::steady_clock::now() + std::chrono::duration<float>(dt));
     }
 }
 
