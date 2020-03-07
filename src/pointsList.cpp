@@ -7,6 +7,7 @@
 
 #include "constants.hpp"
 #include "structs.hpp"
+#include "utils.hpp"
 
 PointsList::PointsList() {
 
@@ -20,9 +21,9 @@ int PointsList::addPoint(double x, double y, double theta) {
 int PointsList::addPoint(sf::String str) {
     auto data = parsePointStr(str, ',');
     if (data.size() == 2) {
-        points.emplace_back(data[0], data[1]);
+        points.emplace_back(ROUND(data[0]), ROUND(data[1]));
     } else if (data.size() == 3) {
-        points.emplace_back(data[0], data[1], data[2]);
+        points.emplace_back(ROUND(data[0]), ROUND(data[1]), ROUND(data[2]));
     } else {
         return -1;
     }
@@ -31,9 +32,9 @@ int PointsList::addPoint(sf::String str) {
 
 void PointsList::setPoint(int index, double x, double y, double theta) {
     Point& point = points.at(index);
-    point.x = x;
-    point.y = y;
-    point.theta = theta;
+    point.x = ROUND(x);
+    point.y = ROUND(y);
+    point.theta = ROUND(theta);
 }
 
 bool PointsList::setPoint(int index, sf::String str) {
@@ -87,12 +88,12 @@ std::vector<double> PointsList::parsePointStr(sf::String str, char delim) {
 
 std::vector<sf::String> PointsList::toStrVector(const Point& point) {
     std::vector<sf::String> v;
-    v.emplace_back(std::to_string(point.x * METERS2INCHES));
-    v.emplace_back(std::to_string(point.y * METERS2INCHES));
+    v.emplace_back(ROUND2STR(point.x * METERS2INCHES));
+    v.emplace_back(ROUND2STR(point.y * METERS2INCHES));
     if (std::isnan(point.theta)) {
         v.emplace_back();
     } else {
-        v.emplace_back(std::to_string(point.theta));
+        v.emplace_back(ROUND2STR(point.theta));
     }
     return v;
 }

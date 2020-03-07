@@ -1,10 +1,12 @@
 #include "simController.hpp"
 
 #include <TGUI/TGUI.hpp>
+#include <SFML/Window/Clipboard.hpp>
 #include <vector>
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <thread>
 #include <json.hpp>
 
@@ -13,6 +15,7 @@
 #include "structs.hpp"
 #include "pointsList.hpp"
 #include "sfLine.hpp"
+#include "utils.hpp"
 
 sf::Cursor defaultCursor;
 sf::Cursor grabCursor;
@@ -70,6 +73,11 @@ void SimController::handleEvent(sf::Event event) {
                 generateProfile();
             }
             break;
+        case sf::Keyboard::C:
+            if (event.key.control && event.key.shift) {
+                copyPoints();
+            }
+            break;
         }
         break;
     }
@@ -97,7 +105,7 @@ void SimController::handleEvent(sf::Event event) {
                 window.setMouseCursor(defaultCursor);
 
                 generateProfile();
-            } else {
+            } else if (gui.get<tgui::EditBox>("rowEditBox") == nullptr) {
                 int pixelX = event.mouseButton.x;
                 int pixelY = event.mouseButton.y;
                 
@@ -236,6 +244,37 @@ void SimController::clearPoints() {
     bufferedResponse = "";
 }
 
+void SimController::copyPoints() {
+    std::ostringstream data;
+    data << "{\n";
+
+    auto& points = getPoints();
+    int len = points.size();
+    int i = 0;
+    for (const Point& point : points) {
+        if (std::isnan(point.theta)) {
+            data << "    new Point(";
+            data << ROUND(point.x * METERS2INCHES);
+            data << ", ";
+            data << ROUND(point.y * METERS2INCHES);
+        } else {
+            data << "    new Point(";
+            data << ROUND(point.x * METERS2INCHES);
+            data << ", ";
+            data << ROUND(point.y * METERS2INCHES);
+            data << ", ";
+            data << ROUND(point.theta);
+        }
+        if (i == len - 1) {
+            data << ")\n";
+        } else {
+            data << "),\n";
+        }
+    }
+    data << "}";
+    sf::Clipboard::setString(data.str());
+}
+
 void SimController::resetRobot() {
     isPathing.store(false, std::memory_order_release);
     
@@ -370,7 +409,10 @@ void SimController::addPoint(float meterX, float meterY, int pixelX, int pixelY)
     // Table point
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
     pointsList->addItem({
-        std::to_string(meterX * METERS2INCHES), std::to_string(meterY * METERS2INCHES), ""});
+        ROUND2STR(meterX * METERS2INCHES), 
+        ROUND2STR(meterY * METERS2INCHES),
+        ""
+    });
 
     // Sprite point
     pointSprites.emplace_back();
@@ -459,6 +501,8 @@ void SimController::createComponents() {
     menuBar->addMenu("Edit");
     menuBar->addMenuItem("Clear Points");
     menuBar->connectMenuItem("Edit", "Clear Points", &SimController::clearPoints, this);
+    menuBar->addMenuItem("Copy Points");
+    menuBar->connectMenuItem("Edit", "Copy Points", &SimController::copyPoints, this);
     menuBar->addMenuItem("Reset Robot");
     menuBar->connectMenuItem("Edit", "Reset Robot", &SimController::resetRobot, this);
     menuBar->addMenu("Pathing");

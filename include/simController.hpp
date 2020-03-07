@@ -31,6 +31,7 @@ public:
     void unfocused();
 
     void clearPoints();
+    void copyPoints();
     void resetRobot();
     void generateProfile();
     void fillPath(const char* bytes, size_t n);
