@@ -21,9 +21,9 @@ int PointsList::addPoint(double x, double y, double theta) {
 int PointsList::addPoint(sf::String str) {
     auto data = parsePointStr(str, ',');
     if (data.size() == 2) {
-        points.emplace_back(ROUND(data[0]), ROUND(data[1]));
+        points.emplace_back(ROUND2(data[0]), ROUND2(data[1]));
     } else if (data.size() == 3) {
-        points.emplace_back(ROUND(data[0]), ROUND(data[1]), ROUND(data[2]));
+        points.emplace_back(ROUND2(data[0]), ROUND2(data[1]), ROUND2(data[2]));
     } else {
         return -1;
     }
@@ -32,9 +32,9 @@ int PointsList::addPoint(sf::String str) {
 
 void PointsList::setPoint(int index, double x, double y, double theta) {
     Point& point = points.at(index);
-    point.x = ROUND(x);
-    point.y = ROUND(y);
-    point.theta = ROUND(theta);
+    point.x = ROUND2(x);
+    point.y = ROUND2(y);
+    point.theta = ROUND2(theta);
 }
 
 bool PointsList::setPoint(int index, sf::String str) {

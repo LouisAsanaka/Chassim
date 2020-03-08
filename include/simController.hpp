@@ -51,6 +51,9 @@ public:
     sf::Vector2f metersRelativeToOrigin(int pixelX, int pixelY);
     std::vector<Point> getPoints();
 private:
+    void setCruiseVelocity(float velocity);
+    void setTargetAcceleration(float acceleration);
+
     void createComponents();
 
     sf::RenderWindow& window;
@@ -79,4 +82,7 @@ private:
 
     int pointDraggingIndex = -1;
     bool isDraggingPoint = false;
+
+    float cruiseVel = 8.0;
+    float targetAccel = 8.0;
 };

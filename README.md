@@ -20,3 +20,4 @@
 - +angle is counter-clockwise
 - Keyboard Shortcuts
 	- Ctrl-Shift-C to copy points into clipboard
+	- Ctrl-G to regenerate the profile

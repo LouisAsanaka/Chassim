@@ -37,6 +37,11 @@ const std::vector<std::vector<b2Vec2>>& Field::getPolygons() const {
     return polygons;
 }
 
+bool Field::isInField(int x, int y) {
+    const auto& size = texture.getSize();
+    return x > 0 && x < size.x && y > 0 && y < size.y;
+}
+
 void Field::loadImage() {
     texture.loadFromFile(FIELD_IMAGE_NAME);
 }

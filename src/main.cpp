@@ -9,6 +9,8 @@
 #include "field.hpp"
 
 int main() {
+    std::cout.sync_with_stdio(false);
+
     Field field;
 
     // Initialize the window

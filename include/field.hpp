@@ -17,6 +17,7 @@ public:
     const sf::Vector2i& getSpawnPoint() const;
     const std::vector<std::vector<b2Vec2>>& getWalls() const;
     const std::vector<std::vector<b2Vec2>>& getPolygons() const;
+    bool isInField(int x, int y);
 
     const inline float p2mX(float coord) const {
         return coord / fieldXPixelPerMeter;

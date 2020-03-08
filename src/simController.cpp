@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 #include <thread>
 #include <json.hpp>
 
@@ -78,6 +79,11 @@ void SimController::handleEvent(sf::Event event) {
                 copyPoints();
             }
             break;
+        case sf::Keyboard::G:
+            if (event.key.control) {
+                generateProfile();
+            }
+            break;
         }
         break;
     }
@@ -108,6 +114,10 @@ void SimController::handleEvent(sf::Event event) {
             } else if (gui.get<tgui::EditBox>("rowEditBox") == nullptr) {
                 int pixelX = event.mouseButton.x;
                 int pixelY = event.mouseButton.y;
+
+                if (!field.isInField(pixelX, pixelY - MENU_BAR_HEIGHT)) {
+                    return;
+                }
                 
                 if (window.getViewport(window.getDefaultView()).contains(pixelX, pixelY)) {
                     auto meters = metersRelativeToOrigin(pixelX, pixelY);
@@ -254,16 +264,16 @@ void SimController::copyPoints() {
     for (const Point& point : points) {
         if (std::isnan(point.theta)) {
             data << "    new Point(";
-            data << ROUND(point.x * METERS2INCHES);
+            data << ROUND2(point.x * METERS2INCHES);
             data << ", ";
-            data << ROUND(point.y * METERS2INCHES);
+            data << ROUND2(point.y * METERS2INCHES);
         } else {
             data << "    new Point(";
-            data << ROUND(point.x * METERS2INCHES);
+            data << ROUND2(point.x * METERS2INCHES);
             data << ", ";
-            data << ROUND(point.y * METERS2INCHES);
+            data << ROUND2(point.y * METERS2INCHES);
             data << ", ";
-            data << ROUND(point.theta);
+            data << ROUND2(point.theta);
         }
         if (i == len - 1) {
             data << ")\n";
@@ -299,7 +309,7 @@ void SimController::generateProfile() {
     while (isBuffering.load(std::memory_order_acquire)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    pathGen.send(points.getPoints(), 8, 8);
+    pathGen.send(points.getPoints(), cruiseVel, targetAccel);
 }
 
 void SimController::fillPath(const char* bytes, size_t n) {
@@ -332,14 +342,17 @@ void SimController::formPath() {
     if (trajectory.size() < size) {
         trajectory.reserve(size);
     }
+    float accumTime = 0.0;
     auto& origin = field.getOrigin();
     for (int i = 0; i < size; ++i) {
         auto& point = pathPoints[i];
+        float time = point["time"].get<float>() * HUNDREDMS2S;
         trajectory.emplace_back(
             point["velocity"].get<float>() * INPP100MS2MPS,
             point["angle"].get<float>() * b2_pi / 180,
-            point["time"].get<float>() * HUNDREDMS2S
+            time
         );
+        accumTime += time;
         if (i == size - 1) {
             break;
         }
@@ -355,6 +368,19 @@ void SimController::formPath() {
             }
         );
     }
+
+    // Update the info box
+    tgui::Label::Ptr infoBox = gui.get<tgui::Label>("infoBox");
+
+    std::ostringstream ss;
+    ss << "Path Length: ";
+    ss << std::fixed << std::setprecision(2) << 
+        ROUND2(pathPoints[size - 1]["position"].get<float>());
+    ss << " in" << std::endl;
+    ss << "Path Time: ";
+    ss << std::fixed << std::setprecision(2) << ROUND2(accumTime);
+    ss << " s" << std::endl;
+    infoBox->setText(ss.str());
 }
 
 void SimController::runProfile() {
@@ -384,7 +410,10 @@ void SimController::executeProfile() {
     );
     robotMutex.unlock();
     
-    for (int i = 0; i < pathLength - 1 && isPathing.load(std::memory_order_acquire); ++i) {
+    for (int i = 0; i < pathLength - 1 && 
+        isPathing.load(std::memory_order_acquire) && 
+        !destructed.load(std::memory_order_acquire); ++i) {
+
         float dt = trajectory[i + 1].dt;
         float linearSpeed = trajectory[i].velocity;
         float angularSpeed = (trajectory[i + 1].angle - trajectory[i].angle) / dt;
@@ -504,6 +533,26 @@ std::vector<Point> SimController::getPoints() {
     return points.getPoints();
 }
 
+void SimController::setCruiseVelocity(float velocity) {
+    cruiseVel = velocity;
+    tgui::Label::Ptr velocitySliderText = gui.get<tgui::Label>("velocitySliderText");
+    std::ostringstream ss;
+    ss << "Cruise Velocity: ";
+    ss << ROUND1(cruiseVel);
+    ss << " in/0.1s";
+    velocitySliderText->setText(ss.str());
+}
+
+void SimController::setTargetAcceleration(float acceleration) {
+    targetAccel = acceleration;
+    tgui::Label::Ptr accelSliderText = gui.get<tgui::Label>("accelSliderText");
+    std::ostringstream ss;
+    ss << "Target Acceleration: ";
+    ss << ROUND1(targetAccel);
+    ss << " in/0.1s/s";
+    accelSliderText->setText(ss.str());
+}
+
 void SimController::createComponents() {
     // Make the top menu bar
     tgui::MenuBar::Ptr menuBar = tgui::MenuBar::create();
@@ -512,13 +561,13 @@ void SimController::createComponents() {
     menuBar->addMenu("Edit");
     menuBar->addMenuItem("Clear Points");
     menuBar->connectMenuItem("Edit", "Clear Points", &SimController::clearPoints, this);
-    menuBar->addMenuItem("Copy Points");
-    menuBar->connectMenuItem("Edit", "Copy Points", &SimController::copyPoints, this);
+    menuBar->addMenuItem("Copy Points (Ctrl-Shift-C)");
+    menuBar->connectMenuItem("Edit", "Copy Points (Ctrl-Shift-C)", &SimController::copyPoints, this);
     menuBar->addMenuItem("Reset Robot");
     menuBar->connectMenuItem("Edit", "Reset Robot", &SimController::resetRobot, this);
     menuBar->addMenu("Pathing");
-    menuBar->addMenuItem("Generate Profile");
-    menuBar->connectMenuItem("Pathing", "Generate Profile", &SimController::generateProfile, this);
+    menuBar->addMenuItem("Generate Profile (Ctrl-G)");
+    menuBar->connectMenuItem("Pathing", "Generate Profile (Ctrl-G)", &SimController::generateProfile, this);
     menuBar->addMenuItem("Execute Profile");
     menuBar->connectMenuItem("Pathing", "Execute Profile", &SimController::runProfile, this);
     gui.add(menuBar, "menuBar");
@@ -526,7 +575,7 @@ void SimController::createComponents() {
     // Make the table of points
     tgui::ListView::Ptr pointsList = tgui::ListView::create();
     pointsList->setTextSize(24);
-    pointsList->setSize({POINTS_LIST_WIDTH, "100%"});
+    pointsList->setSize({POINTS_LIST_WIDTH, "60%"});
     pointsList->setPosition({"parent.width - width", MENU_BAR_HEIGHT});
     pointsList->setHeaderHeight(35);
     pointsList->setHeaderSeparatorHeight(1);
@@ -541,4 +590,67 @@ void SimController::createComponents() {
     pointsList->addColumn(L"\u03B8 (\u00B0)", POINTS_LIST_COLUMN_WIDTH);
 
     gui.add(pointsList, "pointsList");
+
+    tgui::Label::Ptr infoBox = tgui::Label::create();
+    infoBox->setTextSize(20);
+    infoBox->setSize({"pointsList.width", "15%"});
+    infoBox->setPosition({"pointsList.left", "pointsList.bottom"});
+    infoBox->setText("Path Length: 0 in\nPath Time: 0 s");
+    gui.add(infoBox, "infoBox");
+
+    tgui::Label::Ptr velocitySliderText = tgui::Label::create();
+    velocitySliderText->setTextSize(18);
+    velocitySliderText->setText("Cruise Vel: " + ROUND1STR(cruiseVel) + " in/0.1s");
+    velocitySliderText->setPosition({"infoBox.left + 15", "infoBox.bottom"});
+    gui.add(velocitySliderText, "velocitySliderText");
+
+    tgui::Slider::Ptr velocitySlider = tgui::Slider::create();
+    velocitySlider->setSize({"pointsList.width - 30", "2%"});
+    velocitySlider->setPosition({"velocitySliderText.left", "velocitySliderText.bottom + 3"});
+    velocitySlider->setMinimum(5.0);
+    velocitySlider->setMaximum(15.0);
+    velocitySlider->setStep(0.5);
+    velocitySlider->setValue(cruiseVel);
+    velocitySlider->connect("ValueChanged", &SimController::setCruiseVelocity, this);
+    gui.add(velocitySlider, "velocitySlider");
+
+    for (int i = 5; i <= 15; i += 2) {
+        tgui::Label::Ptr velocitySliderTick = tgui::Label::create();
+        velocitySliderTick->setTextSize(13);
+        velocitySliderTick->setText(std::to_string(i));
+        velocitySliderTick->setHorizontalAlignment(tgui::Label::HorizontalAlignment::Center);
+        velocitySliderTick->setPosition({
+            "velocitySliderText.left + velocitySlider.width * " + std::to_string((i - 5) / 10.0) + " - 8", 
+            "velocitySlider.bottom + 2"
+        });
+        gui.add(velocitySliderTick);
+    }
+
+    tgui::Label::Ptr accelSliderText = tgui::Label::create();
+    accelSliderText->setTextSize(18);
+    accelSliderText->setText("Target Accel: " + ROUND1STR(targetAccel) + " in/0.1s/s");
+    accelSliderText->setPosition({"velocitySliderText.left", "velocitySlider.bottom + 15"});
+    gui.add(accelSliderText, "accelSliderText");
+
+    tgui::Slider::Ptr accelSlider = tgui::Slider::create();
+    accelSlider->setSize({"pointsList.width - 30", "2%"});
+    accelSlider->setPosition({"accelSliderText.left", "accelSliderText.bottom + 3"});
+    accelSlider->setMinimum(5.0);
+    accelSlider->setMaximum(15.0);
+    accelSlider->setStep(0.5);
+    accelSlider->setValue(targetAccel);
+    accelSlider->connect("ValueChanged", &SimController::setTargetAcceleration, this);
+    gui.add(accelSlider, "accelSlider");
+
+    for (int i = 5; i <= 15; i += 2) {
+        tgui::Label::Ptr accelSliderTick = tgui::Label::create();
+        accelSliderTick->setTextSize(13);
+        accelSliderTick->setText(std::to_string(i));
+        accelSliderTick->setHorizontalAlignment(tgui::Label::HorizontalAlignment::Center);
+        accelSliderTick->setPosition({
+            "accelSliderText.left + accelSlider.width * " + std::to_string((i - 5) / 10.0) + " - 8",
+            "accelSlider.bottom + 2"
+        });
+        gui.add(accelSliderTick);
+    }
 }
