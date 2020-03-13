@@ -1,6 +1,10 @@
 # Chassim
 
-## Requirements
+## Run Requirements
+- Java 12+ (don't forget to add to PATH!)
+- Microsoft Visual C++ Redistributable ([x86](https://aka.ms/vs/16/release/vc_redist.x86.exe), [x64](https://aka.ms/vs/16/release/vc_redist.x64.exe))
+
+## Build Requirements
 - Java (Tested with 12)
 - Visual Studio (Preferably 2019)
 - [SFML 2.5.1](https://www.sfml-dev.org/download.php)
