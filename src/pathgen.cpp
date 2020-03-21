@@ -8,11 +8,8 @@
 #include "structs.hpp"
 #include "pathfinder/pathfinder.h"
 
-PathGenerator::PathGenerator(float trackwidth, double maxVel, double maxAccel, double maxJerk) :
-    trackwidth{trackwidth},
-    maxVel{maxVel},
-    maxAccel{maxAccel},
-    maxJerk{maxJerk} {
+PathGenerator::PathGenerator(float trackwidth) :
+    trackwidth{trackwidth} {
 
 }
 
@@ -20,7 +17,9 @@ PathGenerator::PathGenerator(float trackwidth, double maxVel, double maxAccel, d
  * Original author: Ryan Benasutti, WPI
  * Modified from OkapiLib
  */
-TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints) {
+TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints,
+    double maxVel, double maxAccel, double maxJerk 
+) {
     if (waypoints.size() == 0) {
         // No point in generating a path
         std::cout <<
@@ -46,8 +45,9 @@ TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints) {
         maxAccel,
         maxJerk,
         &candidate);
-
     const int length = candidate.length;
+    const double totalTime = candidate.length * candidate.info.dt;
+    const double pathLength = candidate.totalLength;
 
     if (length < 0) {
         auto pointToString = [](Waypoint point) {
@@ -126,5 +126,6 @@ TrajectoryPair* PathGenerator::generatePath(std::vector<Point> waypoints) {
     std::cout << "PathGenerator: Completely done generating path" << std::endl;
     std::cout << "PathGenerator: " + std::to_string(length) << std::endl;
 
-    return new TrajectoryPair{leftTrajectory, rightTrajectory, trajectory, length};
+    return new TrajectoryPair{leftTrajectory, rightTrajectory, trajectory, length,
+        totalTime, pathLength};
 }

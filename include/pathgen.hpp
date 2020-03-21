@@ -10,16 +10,16 @@ struct TrajectoryPair {
     Segment* right;
     Segment* original;
     int length;
+    double totalTime;
+    double pathLength;
 };
 
 class PathGenerator {
 public:
-    PathGenerator(float trackwidth, double maxVel, double maxAccel, double maxJerk);
+    PathGenerator(float trackwidth);
 
-    TrajectoryPair* generatePath(std::vector<Point> waypoints);
+    TrajectoryPair* generatePath(std::vector<Point> waypoints, 
+        double maxVel, double maxAccel, double maxJerk);
 private:
     float trackwidth;
-    double maxVel;
-    double maxAccel;
-    double maxJerk;
 };

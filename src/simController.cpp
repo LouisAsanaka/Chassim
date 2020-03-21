@@ -3,6 +3,7 @@
 #include <TGUI/TGUI.hpp>
 #include <vector>
 #include <iostream>
+#include <iomanip>
 
 #include "constants.hpp"
 #include "field.hpp"
@@ -10,6 +11,7 @@
 #include "pointsList.hpp"
 #include "pathgen.hpp"
 #include "sfLine.hpp"
+#include "utils.hpp"
 
 sf::Cursor defaultCursor;
 sf::Cursor grabCursor;
@@ -20,7 +22,7 @@ SimController::SimController(sf::RenderWindow& window, Field& field) :
     field{field},
     env{field},
     robot{env, field.getSpawnPoint().x, field.getSpawnPoint().y},
-    pathGen{robot.getTrackWidth(), 3.0, 4.0, 20.0},
+    pathGen{robot.getTrackWidth()},
     splineLines{} {
     defaultCursor.loadFromSystem(sf::Cursor::Type::Arrow);
     grabCursor.loadFromSystem(sf::Cursor::Type::Hand);
@@ -61,6 +63,11 @@ void SimController::handleEvent(sf::Event event) {
                 generateProfile();
             }
             break;
+        case sf::Keyboard::G:
+            if (event.key.control) {
+                generateProfile();
+            }
+            break;
         }
         break;
     }
@@ -88,9 +95,13 @@ void SimController::handleEvent(sf::Event event) {
                 window.setMouseCursor(defaultCursor);
 
                 generateProfile();
-            } else {
+            } else if (gui.get<tgui::EditBox>("rowEditBox") == nullptr) {
                 int pixelX = event.mouseButton.x;
                 int pixelY = event.mouseButton.y;
+
+                if (!field.isInField(pixelX, pixelY - MENU_BAR_HEIGHT)) {
+                    return;
+                }
                 
                 if (window.getViewport(window.getDefaultView()).contains(pixelX, pixelY)) {
                     auto meters = metersRelativeToOrigin(pixelX, pixelY);
@@ -268,7 +279,7 @@ void SimController::generateProfile() {
     }
     
     // TODO: Generate the modified tank trajectory only when executing the profile
-    traj = pathGen.generatePath(waypoints);
+    traj = pathGen.generatePath(waypoints, maxVelocity, maxAcceleration, 20.0);
 
     if (splineLines.size() < traj->length) {
         splineLines.reserve(traj->length);
@@ -288,6 +299,18 @@ void SimController::generateProfile() {
             }
         );
     }
+
+    // Update the info box
+    tgui::Label::Ptr infoBox = gui.get<tgui::Label>("infoBox");
+
+    std::ostringstream ss;
+    ss << "Path Length: ";
+    ss << std::fixed << std::setprecision(2) << ROUND2(traj->pathLength);
+    ss << " m" << std::endl;
+    ss << "Path Time: ";
+    ss << std::fixed << std::setprecision(2) << ROUND2(traj->totalTime);
+    ss << " s" << std::endl;
+    infoBox->setText(ss.str());
 }
 
 void SimController::executeProfile() {
@@ -394,6 +417,26 @@ std::vector<Point> SimController::getPoints() {
     return points.getPoints();
 }
 
+void SimController::setMaxVelocity(float velocity) {
+    maxVelocity = velocity;
+    tgui::Label::Ptr velocitySliderText = gui.get<tgui::Label>("velocitySliderText");
+    std::ostringstream ss;
+    ss << "Max Velocity: ";
+    ss << ROUND1(maxVelocity);
+    ss << " m/s";
+    velocitySliderText->setText(ss.str());
+}
+
+void SimController::setMaxAcceleration(float acceleration) {
+    maxAcceleration = acceleration;
+    tgui::Label::Ptr accelSliderText = gui.get<tgui::Label>("accelSliderText");
+    std::ostringstream ss;
+    ss << "Max Acceleration: ";
+    ss << ROUND1(maxAcceleration);
+    ss << " m/s^2";
+    accelSliderText->setText(ss.str());
+}
+
 void SimController::createComponents() {
     // Make the top menu bar
     tgui::MenuBar::Ptr menuBar = tgui::MenuBar::create();
@@ -405,8 +448,8 @@ void SimController::createComponents() {
     menuBar->addMenuItem("Reset Robot");
     menuBar->connectMenuItem("Edit", "Reset Robot", &SimController::resetRobot, this);
     menuBar->addMenu("Pathing");
-    menuBar->addMenuItem("Generate Profile");
-    menuBar->connectMenuItem("Pathing", "Generate Profile", &SimController::generateProfile, this);
+    menuBar->addMenuItem("Generate Profile (Ctrl-G)");
+    menuBar->connectMenuItem("Pathing", "Generate Profile (Ctrl-G)", &SimController::generateProfile, this);
     menuBar->addMenuItem("Execute Profile");
     menuBar->connectMenuItem("Pathing", "Execute Profile", &SimController::executeProfile, this);
     gui.add(menuBar, "menuBar");
@@ -414,7 +457,7 @@ void SimController::createComponents() {
     // Make the table of points
     tgui::ListView::Ptr pointsList = tgui::ListView::create();
     pointsList->setTextSize(24);
-    pointsList->setSize({POINTS_LIST_WIDTH, "100%"});
+    pointsList->setSize({POINTS_LIST_WIDTH, "60%"});
     pointsList->setPosition({"parent.width - width", MENU_BAR_HEIGHT});
     pointsList->setHeaderHeight(35);
     pointsList->setHeaderSeparatorHeight(1);
@@ -429,4 +472,67 @@ void SimController::createComponents() {
     pointsList->addColumn(L"\u03B8 (\u00B0)", POINTS_LIST_COLUMN_WIDTH);
 
     gui.add(pointsList, "pointsList");
+
+    tgui::Label::Ptr infoBox = tgui::Label::create();
+    infoBox->setTextSize(20);
+    infoBox->setSize({"pointsList.width", "15%"});
+    infoBox->setPosition({"pointsList.left", "pointsList.bottom"});
+    infoBox->setText("Path Length: 0 in\nPath Time: 0 s");
+    gui.add(infoBox, "infoBox");
+
+    tgui::Label::Ptr velocitySliderText = tgui::Label::create();
+    velocitySliderText->setTextSize(18);
+    velocitySliderText->setText("Max Velocity: " + ROUND1STR(maxVelocity) + " m/s");
+    velocitySliderText->setPosition({"infoBox.left + 15", "infoBox.bottom"});
+    gui.add(velocitySliderText, "velocitySliderText");
+
+    tgui::Slider::Ptr velocitySlider = tgui::Slider::create();
+    velocitySlider->setSize({"pointsList.width - 30", "2%"});
+    velocitySlider->setPosition({"velocitySliderText.left", "velocitySliderText.bottom + 3"});
+    velocitySlider->setMinimum(0.1);
+    velocitySlider->setMaximum(1.0);
+    velocitySlider->setStep(0.1);
+    velocitySlider->setValue(maxVelocity);
+    velocitySlider->connect("ValueChanged", &SimController::setMaxVelocity, this);
+    gui.add(velocitySlider, "velocitySlider");
+
+    for (int i = 1; i <= 10; i += 1) {
+        tgui::Label::Ptr velocitySliderTick = tgui::Label::create();
+        velocitySliderTick->setTextSize(13);
+        velocitySliderTick->setText(std::to_string(i));
+        velocitySliderTick->setHorizontalAlignment(tgui::Label::HorizontalAlignment::Center);
+        velocitySliderTick->setPosition({
+            "velocitySliderText.left + velocitySlider.width * " + std::to_string((i - 1) / 9.0) + " - 8",
+            "velocitySlider.bottom + 2"
+        });
+        gui.add(velocitySliderTick);
+    }
+
+    tgui::Label::Ptr accelSliderText = tgui::Label::create();
+    accelSliderText->setTextSize(18);
+    accelSliderText->setText("Max Accel: " + ROUND1STR(maxAcceleration) + " m/s^2");
+    accelSliderText->setPosition({"velocitySliderText.left", "velocitySlider.bottom + 15"});
+    gui.add(accelSliderText, "accelSliderText");
+
+    tgui::Slider::Ptr accelSlider = tgui::Slider::create();
+    accelSlider->setSize({"pointsList.width - 30", "2%"});
+    accelSlider->setPosition({"accelSliderText.left", "accelSliderText.bottom + 3"});
+    accelSlider->setMinimum(0.1);
+    accelSlider->setMaximum(1.0);
+    accelSlider->setStep(0.1);
+    accelSlider->setValue(maxAcceleration);
+    accelSlider->connect("ValueChanged", &SimController::setMaxAcceleration, this);
+    gui.add(accelSlider, "accelSlider");
+
+    for (int i = 1; i <= 10; i += 1) {
+        tgui::Label::Ptr accelSliderTick = tgui::Label::create();
+        accelSliderTick->setTextSize(13);
+        accelSliderTick->setText(std::to_string(i));
+        accelSliderTick->setHorizontalAlignment(tgui::Label::HorizontalAlignment::Center);
+        accelSliderTick->setPosition({
+            "accelSliderText.left + accelSlider.width * " + std::to_string((i - 1) / 9.0) + " - 8",
+            "accelSlider.bottom + 2"
+        });
+        gui.add(accelSliderTick);
+    }
 }

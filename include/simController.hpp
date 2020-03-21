@@ -51,6 +51,9 @@ public:
         return newAngle;
     }
 private:
+    void setMaxVelocity(float velocity);
+    void setMaxAcceleration(float acceleration);
+
     void createComponents();
 
     sf::RenderWindow& window;
@@ -73,4 +76,7 @@ private:
 
     int pointDraggingIndex = -1;
     bool isDraggingPoint = false;
+
+    float maxVelocity = 0.5;
+    float maxAcceleration = 0.5;
 };

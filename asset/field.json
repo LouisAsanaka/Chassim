@@ -1,9 +1,9 @@
 {
-  "fieldPixelWidth": 1286,
-  "fieldMeterWidth": 15.9832,
-  "fieldPixelHeight": 663,
-  "fieldMeterHeight": 8.2121,
-  "spawnPoint": [264, 369],
+  "fieldPixelWidth": 730,
+  "fieldMeterWidth": 3.5687,
+  "fieldPixelHeight": 730,
+  "fieldMeterHeight": 3.5687,
+  "spawnPoint": [64, 596],
   "walls": [],
   "polygons": []
 }

@@ -29,6 +29,7 @@
     <ClCompile Include="src\pointsList.cpp" />
     <ClCompile Include="src\robot.cpp" />
     <ClCompile Include="src\simController.cpp" />
+    <ClCompile Include="src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\constants.hpp" />
@@ -54,6 +55,7 @@
     <ClInclude Include="include\sfLine.hpp" />
     <ClInclude Include="include\structs.hpp" />
     <ClInclude Include="include\simController.hpp" />
+    <ClInclude Include="include\utils.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
