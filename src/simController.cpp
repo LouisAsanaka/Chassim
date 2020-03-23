@@ -208,11 +208,12 @@ void SimController::editRow(int index) {
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
 
     tgui::EditBox::Ptr editBox = tgui::EditBox::create();
-    editBox->setSize({POINTS_LIST_WIDTH, 30});
+    editBox->setSize({POINTS_LIST_WIDTH, pointsList->getItemHeight()});
     editBox->setPosition({
         pointsList->getPosition().x, 
         MENU_BAR_HEIGHT + index * pointsList->getItemHeight() + 
-            pointsList->getHeaderHeight() + pointsList->getHeaderSeparatorHeight() * 2});
+            pointsList->getHeaderHeight() + pointsList->getHeaderSeparatorHeight() * 2
+            - pointsList->getVerticalScrollbarValue()});
     editBox->setTextSize(24);
     editBox->setText(
         pointsList->getItemCell(index, 0) + ", " +
