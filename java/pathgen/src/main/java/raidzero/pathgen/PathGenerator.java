@@ -15,7 +15,7 @@ public class PathGenerator {
      * accuracy for path generation.
      */
     private static final double QUERY_INTERVAL = 1.0;
-
+    
     /**
      * Generates a path that passes through the given waypoints on the field.
      *
@@ -32,6 +32,26 @@ public class PathGenerator {
      */
     public static PathPoint[] generatePath(Point[] waypoints,
     double cruiseVelocity, double targetAcceleration) {
+        return generatePath(waypoints, cruiseVelocity, targetAcceleration, 0.0);
+    }
+
+    /**
+     * Generates a path that passes through the given waypoints on the field.
+     *
+     * <p>The returned path contains data which can be passed to motion profile to execute the path.
+     * The robot will accelerate at a constant rate, then reach a constant cruise velocity, then
+     * decelerate at the same rate. In other words, the velocity vs time graph shows an isosceles
+     * trapezoid.
+     *
+     * @param waypoints points that the path should pass through
+     * @param cruiseVelocity the target constant cruise velocity of the robot in in/100ms
+     * @param targetAcceleration the target constant acceleration (and deceleration) of the robot in
+     * in/100ms/s
+     * @param initialVelocity the initial velocity of the robot in in/100ms
+     * @return an array of points on the path
+     */
+    public static PathPoint[] generatePath(Point[] waypoints,
+    double cruiseVelocity, double targetAcceleration, double initialVelocity) {
 
         var queryData = getQueryData(waypoints);
         var splines = calculateSplines(waypoints, queryData);
@@ -41,7 +61,7 @@ public class PathGenerator {
             path[i] = new PathPoint();
         }
 
-        calculatePathPoints(path, cruiseVelocity, targetAcceleration, splines, queryData);
+        calculatePathPoints(path, cruiseVelocity, targetAcceleration, initialVelocity, splines, queryData);
 
         return path;
 
@@ -100,7 +120,7 @@ public class PathGenerator {
     }
 
     public static void calculatePathPoints(PathPoint[] path, double cruiseVelocity,
-    double targetAcceleration, SplinePair splines, QueryData queryData) {
+    double targetAcceleration, double initialVelocity, SplinePair splines, QueryData queryData) {
 
         // Convert the target acceleration to in/(100ms)^2 for consistent unit of time
         targetAcceleration /= 10;
@@ -143,24 +163,27 @@ public class PathGenerator {
         // constant velocity, and deceleration parts respectively.
         {
             var reachesCruiseVelocity = false;
+            
+            double v0 = initialVelocity;
+            double v02 = v0 * v0;
             // First stage: we find velocity and time for data points assuming constant acceleration
             // up until either (1) we reach the cruise velocity, or (2) we have not reached cruise
             // velocity and we are halfway through the path already, in which case we must start
             // decelerating.
             int i;
             for (i = 0; path[i].position <= totalDistance / 2; i++) {
-                // v^2 = 2 a x
-                // v = sqrt(2 a x)
-                var velocity = Math.sqrt(2 * targetAcceleration * path[i].position);
+                // v^2 = v0^2 + 2 a x
+                // v = sqrt(v0^2 + 2 a x)
+                var velocity = Math.sqrt(v02 + 2 * targetAcceleration * path[i].position);
                 if (velocity > cruiseVelocity) {
                     reachesCruiseVelocity = true;
                     break;
                 }
                 path[i].velocity = velocity;
-                // x = (1/2) a t^2
-                // t^2 = 2 x / a
-                // t = sqrt(2 x / a)
-                path[i].time = Math.sqrt(2 * path[i].position / targetAcceleration);
+                // x = v0 t + (1/2) a t^2
+                // t = (sqrt(2 a x + v0^2) - v0) / a
+                path[i].time = (Math.sqrt(2 * targetAcceleration * path[i].position + v02) - v0) / targetAcceleration;
+                //path[i].time = Math.sqrt(2 * path[i].position / targetAcceleration);
             }
             // Third stage for velocity: we do the same thing as the first stage, but working
             // backwards instead. We stop when either (1) we reach the cruise velocity, or (2) we
@@ -174,12 +197,12 @@ public class PathGenerator {
                 }
                 path[j].velocity = velocity;
             }
-            // v = a t
-            // t = v / a
-            var cruiseStartTime = cruiseVelocity / targetAcceleration;
-            // v^2 = 2 a x
-            // x = v^2 / (2 a)
-            var cruiseStartPosition = cruiseVelocity * cruiseVelocity / (2 * targetAcceleration);
+            // v = v0 + a t
+            // t = (v - v0) / a
+            var cruiseStartTime = (cruiseVelocity - v0) / targetAcceleration;
+            // v^2 = v0^2 + 2 a x
+            // x = (v^2 - v0^2) / (2 a)
+            var cruiseStartPosition = (cruiseVelocity * cruiseVelocity - v02) / (2 * targetAcceleration);
             int k;
             // Second stage: we calculate velocity and time in between the end of first stage and
             // start of third stage. If we never reach the cruise velocity, this loop never runs.
@@ -194,19 +217,20 @@ public class PathGenerator {
                     + (path[k].position - cruiseStartPosition) / cruiseVelocity;
             }
             var decelerateStartPosition = reachesCruiseVelocity
-                // It takes the same distance to accelerate and decelerate to/from the same velocity
-                ? totalDistance - cruiseStartPosition
+                // The next position at the end of the cruising period is the start
+                ? path[j + 1].position
                 : totalDistance / 2;
             var decelerateStartTime = reachesCruiseVelocity
                 ? cruiseStartTime + (decelerateStartPosition - cruiseStartPosition) / cruiseVelocity
                 : Math.sqrt(totalDistance / targetAcceleration);
             var decelerateInitialVelocity = reachesCruiseVelocity
                 ? cruiseVelocity
-                // v^2 = 2 a x_mid
-                // v = sqrt(2 a x_mid)
+                // v^2 = v0^2 + 2 a x_mid
+                // v = sqrt(v0^2 + 2 a x_mid)
                 // x_mid = x_total / 2
-                // v = sqrt(a x_total)
-                : Math.sqrt(targetAcceleration * totalDistance);
+                // v = sqrt(v0^2 + a x_total)
+                : Math.sqrt(v02 + targetAcceleration * totalDistance);
+
             // Third stage for time: calculate from end of stage 2 to end of path
             for (; k < path.length; k++) {
                 // x = x0 + v0 t + (1/2) (-a) t^2

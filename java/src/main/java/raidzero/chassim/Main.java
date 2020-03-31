@@ -39,7 +39,7 @@ public class Main {
                 res.path[i].y = yQueries[i];
             }
             PathGenerator.calculatePathPoints(
-                res.path, req.cruiseVelocity, req.targetAcceleration, splines, queryData);
+                res.path, req.cruiseVelocity, req.targetAcceleration, 0.0, splines, queryData);
             System.out.println(gson.toJson(res));
         }
     }
