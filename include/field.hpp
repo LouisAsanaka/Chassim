@@ -13,6 +13,7 @@ public:
     Field();
 
     const sf::Texture& getTexture() const;
+    const sf::Vector2f& getOrigin() const;
     const sf::Vector2i& getSpawnPoint() const;
     const std::vector<std::vector<b2Vec2>>& getWalls() const;
     const std::vector<std::vector<b2Vec2>>& getPolygons() const;
@@ -47,6 +48,7 @@ private:
     float fieldMeterHeight;
     float fieldYPixelPerMeter;
 
+    sf::Vector2f origin;
     sf::Vector2i spawnPoint;
     std::vector<std::vector<b2Vec2>> walls;
     std::vector<std::vector<b2Vec2>> polygons;

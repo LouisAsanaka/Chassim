@@ -42,11 +42,7 @@ bool PointsList::setPoint(int index, sf::String str) {
     if (data.size() != 3) {
         return false;
     }
-    if (index == 0) {
-        setPoint(index, 0.0, 0.0, data[2]);
-    } else {
-        setPoint(index, data[0], data[1], data[2]);
-    }
+    setPoint(index, data[0], data[1], data[2]);
     return true;
 }
 

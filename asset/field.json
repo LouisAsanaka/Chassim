@@ -4,6 +4,7 @@
   "fieldPixelHeight": 730,
   "fieldMeterHeight": 3.5687,
   "spawnPoint": [64, 596],
+  "origin": [0, 0],
   "walls": [],
   "polygons": []
 }

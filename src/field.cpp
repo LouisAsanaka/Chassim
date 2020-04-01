@@ -18,6 +18,10 @@ const sf::Texture& Field::getTexture() const {
     return texture;
 }
 
+const sf::Vector2f& Field::getOrigin() const {
+    return origin;
+}
+
 const sf::Vector2i& Field::getSpawnPoint() const {
     return spawnPoint;
 }
@@ -52,6 +56,9 @@ void Field::loadData() {
     metadata["fieldMeterHeight"].get_to(fieldMeterHeight);
     fieldYPixelPerMeter = fieldPixelHeight / fieldMeterHeight;
 
+    origin = sf::Vector2f{
+        metadata["origin"][0].get<float>(), metadata["origin"][1].get<float>()
+    };
     spawnPoint = sf::Vector2i{
         metadata["spawnPoint"][0].get<int>(), metadata["spawnPoint"][1].get<int>()
     };

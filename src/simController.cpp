@@ -30,7 +30,7 @@ SimController::SimController(sf::RenderWindow& window, Field& field) :
     splineLines.reserve(1000);
     createComponents();
 
-    addPoint(0, 0, field.getSpawnPoint().x, field.getSpawnPoint().y + MENU_BAR_HEIGHT);
+    addPoint(0, 0, field.getOrigin().x, field.getOrigin().y + MENU_BAR_HEIGHT);
 }
 
 void SimController::handleEvent(sf::Event event) {
@@ -50,14 +50,14 @@ void SimController::handleEvent(sf::Event event) {
             }
             break;
         case sf::Keyboard::Up:
-            if (index > 1) {
+            if (index > 0) {
                 swapPoints(index, index - 1);
                 pointsList->setSelectedItem(index - 1);
                 generateProfile();
             }
             break;
         case sf::Keyboard::Down:
-            if (index > 0 && index < pointsList->getItemCount() - 1) {
+            if (index >= 0 && index < pointsList->getItemCount() - 1) {
                 swapPoints(index, index + 1);
                 pointsList->setSelectedItem(index + 1);
                 generateProfile();
@@ -112,13 +112,6 @@ void SimController::handleEvent(sf::Event event) {
         case sf::Event::MouseMoved:
             if (isDraggingPoint) {
                 setPoint(pointDraggingIndex, event.mouseMove.x, event.mouseMove.y, true);
-                if (pointDraggingIndex == 0) {
-                    for (int i = 1; i < points.size(); ++i) {
-                        auto& spritePos = pointSprites.at(i).getPosition();
-                        setPoint(i, spritePos.x,
-                            spritePos.y, false);
-                    }
-                }
             }
         }
     }
@@ -285,18 +278,18 @@ void SimController::generateProfile() {
     if (splineLines.size() < traj->length) {
         splineLines.reserve(traj->length);
     }
-    auto& origin = pointSprites.at(0).getPosition();
+    auto& origin = field.getOrigin();
     for (int i = 0; i < traj->length - 1; ++i) {
         auto& point = *(traj->original + i);
         auto& nextPoint = *(traj->original + i + 1);
         splineLines.emplace_back(
             origin + sf::Vector2f{
                 field.m2pX(point.x),
-                -field.m2pY(point.y)
+                -field.m2pY(point.y) + MENU_BAR_HEIGHT
             },
             origin + sf::Vector2f{
                 field.m2pX(nextPoint.x),
-                -field.m2pY(nextPoint.y)
+                -field.m2pY(nextPoint.y) + MENU_BAR_HEIGHT
             }
         );
     }
@@ -352,12 +345,8 @@ void SimController::addPoint(float meterX, float meterY) {
 }
 
 void SimController::setPoint(int index, int pixelX, int pixelY, bool draw) {
-    if (index == 0) {
-        points.setPoint(index, 0, 0);
-    } else {
-        auto meters = metersRelativeToOrigin(pixelX, pixelY);
-        points.setPoint(index, meters.x, meters.y);
-    }
+    auto meters = metersRelativeToOrigin(pixelX, pixelY);
+    points.setPoint(index, meters.x, meters.y, points.getPoint(index).theta);
 
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
 
@@ -403,15 +392,15 @@ void SimController::removePoint(int index) {
 }
 
 sf::Vector2f SimController::pixelsRelativeToOrigin(float meterX, float meterY) {
-    auto& origin = pointSprites.at(0);
     sf::Vector2f pos{field.m2pX(meterX), -field.m2pY(meterY)};
-    pos += origin.getPosition();
+    pos += field.getOrigin();
+    pos.y += MENU_BAR_HEIGHT;
     return pos;
 }
 
 sf::Vector2f SimController::metersRelativeToOrigin(int pixelX, int pixelY) {
-    auto& origin = pointSprites.at(0).getPosition();
-    return {field.p2mX(pixelX - origin.x), field.p2mY(origin.y - pixelY)};
+    auto& origin = field.getOrigin();
+    return {field.p2mX(pixelX - origin.x), field.p2mY(origin.y + MENU_BAR_HEIGHT - pixelY)};
 }
 
 std::vector<Point> SimController::getPoints() {
