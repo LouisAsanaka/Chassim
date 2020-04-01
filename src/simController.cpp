@@ -326,7 +326,11 @@ void SimController::addPoint(float meterX, float meterY, int pixelX, int pixelY)
 
     // Table point
     tgui::ListView::Ptr pointsList = gui.get<tgui::ListView>("pointsList");
-    pointsList->addItem({std::to_string(meterX), std::to_string(meterY), "0"});
+    pointsList->addItem({
+        ROUND2STR(meterX), 
+        ROUND2STR(meterY),
+        "0"
+    });
 
     // Sprite point
     pointSprites.emplace_back();

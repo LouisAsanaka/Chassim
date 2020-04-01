@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 
+#include "utils.hpp"
 #include "structs.hpp"
 
 PointsList::PointsList() {
@@ -20,21 +21,21 @@ int PointsList::addPoint(sf::String str) {
     if (data.size() != 3) {
         return -1;
     }
-    points.emplace_back(data[0], data[1], data[2]);
+    points.emplace_back(ROUND2(data[0]), ROUND2(data[1]), ROUND2(data[2]));
     return points.size() - 1;
 }
 
 void PointsList::setPoint(int index, double x, double y) {
     Point& point = points.at(index);
-    point.x = x;
-    point.y = y;
+    point.x = ROUND2(x);
+    point.y = ROUND2(y);
 }
 
 void PointsList::setPoint(int index, double x, double y, double theta) {
     Point& point = points.at(index);
-    point.x = x;
-    point.y = y;
-    point.theta = theta;
+    point.x = ROUND2(x);
+    point.y = ROUND2(y);
+    point.theta = ROUND2(theta);
 }
 
 bool PointsList::setPoint(int index, sf::String str) {
@@ -85,8 +86,8 @@ std::vector<double> PointsList::parsePointStr(sf::String str, char delim) {
 
 std::vector<sf::String> PointsList::toStrVector(const Point& point) {
     std::vector<sf::String> v;
-    v.emplace_back(std::to_string(point.x));
-    v.emplace_back(std::to_string(point.y));
-    v.emplace_back(std::to_string(point.theta));
+    v.emplace_back(ROUND2STR(point.x));
+    v.emplace_back(ROUND2STR(point.y));
+    v.emplace_back(ROUND2STR(point.theta));
     return v;
 }
