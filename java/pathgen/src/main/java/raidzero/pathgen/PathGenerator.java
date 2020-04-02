@@ -152,8 +152,14 @@ public class PathGenerator {
         // from the last point and the current point. The interval for the last pathpoint is shorter
         // as it is the last waypoint, and QUERY_INTERVAL does not divide into the full path length.
         for (var i = 1; i < path.length; i++) {
-            double interval = i == path.length - 1 ?
-                queryData.totalWaypointDistance % QUERY_INTERVAL : QUERY_INTERVAL;
+            
+            double interval = QUERY_INTERVAL;
+            if (i == path.length - 1) {
+                double remainder = queryData.totalWaypointDistance % QUERY_INTERVAL;
+                if (remainder != 0) {
+                    interval = remainder;
+                }
+            }
             path[i].position = 0.5 * interval * (Math.hypot(dxQueries[i], dyQueries[i])
                 + Math.hypot(dxQueries[i - 1], dyQueries[i - 1])) + path[i - 1].position;
         }
@@ -171,10 +177,20 @@ public class PathGenerator {
             // velocity and we are halfway through the path already, in which case we must start
             // decelerating.
             int i;
+            // TODO: totalDistance / 2 comparison should not be needed
             for (i = 0; path[i].position <= totalDistance / 2; i++) {
                 // v^2 = v0^2 + 2 a x
                 // v = sqrt(v0^2 + 2 a x)
                 var velocity = Math.sqrt(v02 + 2 * targetAcceleration * path[i].position);
+                // v^2 = v0^2 + 2 a x
+                // x = (v^2 - v0^2) / (2 a)
+                // v = 0, a < 0
+                // The expected distace needed to decelerate with the current velocity
+                var decelerationDistance = velocity * velocity / (2 * targetAcceleration);
+                if (decelerationDistance > totalDistance - path[i].position) {
+                    break;
+                }
+                
                 if (velocity > cruiseVelocity) {
                     reachesCruiseVelocity = true;
                     break;
@@ -190,8 +206,8 @@ public class PathGenerator {
             // reach where stage 1 stopped, in which case there is no constant velocity part.
             int j;
             for (j = path.length - 1; j >= i; j--) {
-                var velocity = Math.sqrt(2 * targetAcceleration
-                    * (totalDistance - path[j].position));
+                var distanceFromEnd = totalDistance - path[j].position;
+                var velocity = Math.sqrt(2 * targetAcceleration * distanceFromEnd);
                 if (velocity > cruiseVelocity) {
                     break;
                 }
@@ -216,20 +232,19 @@ public class PathGenerator {
                 path[k].time = cruiseStartTime
                     + (path[k].position - cruiseStartPosition) / cruiseVelocity;
             }
+            int endOfCruiseIndex = k;
+            int endOfAccelIndex = i;
             var decelerateStartPosition = reachesCruiseVelocity
                 // The next position at the end of the cruising period is the start
-                ? path[j + 1].position
-                : totalDistance / 2;
-            var decelerateStartTime = reachesCruiseVelocity
-                ? cruiseStartTime + (decelerateStartPosition - cruiseStartPosition) / cruiseVelocity
-                : Math.sqrt(totalDistance / targetAcceleration);
+                ? path[endOfCruiseIndex].position
+                : path[endOfAccelIndex].position;
             var decelerateInitialVelocity = reachesCruiseVelocity
                 ? cruiseVelocity
-                // v^2 = v0^2 + 2 a x_mid
-                // v = sqrt(v0^2 + 2 a x_mid)
-                // x_mid = x_total / 2
-                // v = sqrt(v0^2 + a x_total)
-                : Math.sqrt(v02 + targetAcceleration * totalDistance);
+                : path[endOfAccelIndex].velocity;
+            var decelerateStartTime = reachesCruiseVelocity
+                ? path[endOfCruiseIndex].time
+                : path[endOfAccelIndex].time;
+
 
             // Third stage for time: calculate from end of stage 2 to end of path
             for (; k < path.length; k++) {
