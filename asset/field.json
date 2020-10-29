@@ -1,10 +1,10 @@
 {
-  "fieldPixelWidth": 730,
+  "fieldPixelWidth": 695,
   "fieldMeterWidth": 3.5687,
-  "fieldPixelHeight": 730,
+  "fieldPixelHeight": 651,
   "fieldMeterHeight": 3.5687,
-  "spawnPoint": [64, 596],
-  "origin": [0, 730],
+  "spawnPoint": [441, 592],
+  "origin": [0, 651],
   "walls": [],
   "polygons": []
 }
